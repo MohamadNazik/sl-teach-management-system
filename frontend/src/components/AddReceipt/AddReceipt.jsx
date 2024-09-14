@@ -1,7 +1,12 @@
 import React from "react";
+import Header from "../Header";
 
 const AddReceipt = () => {
-  return <div>AddReceipt</div>;
+  return (
+    <>
+      <Header />
+    </>
+  );
 };
 
 export default AddReceipt;
