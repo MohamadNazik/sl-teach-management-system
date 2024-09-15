@@ -8,8 +8,8 @@ import addReceiptIcon from "../../assets/icons/add_receipt_blue.svg";
 
 const StaffDashboard = () => {
   return (
-    <section className="h-screen bg-[url('/src/assets/background/body.png')] bg-cover bg-repeat-y ">
-      <Header />
+    <section className="h-screen">
+      <Header page="Staff Dashboard" isDashboard={true} />
       <div className="flex gap-4 items-center justify-center h-[30rem]">
         <Link to={"/view-receipts"}>
           <DetailCard icon={viewReceiptsIcon} title="View Receipts" />

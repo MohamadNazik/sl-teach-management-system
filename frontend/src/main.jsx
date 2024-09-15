@@ -9,6 +9,7 @@ import AddReceipt from "./components/AddReceipt/AddReceipt.jsx";
 import ChangeForm from "./components/ChangeForm/ChangeForm.jsx";
 import Favourites from "./components/Favourites/Favourites.jsx";
 import ViewReceipts from "./components/ViewReceipts/ViewReceipts.jsx";
+import ManageStaff from "./components/ManageStaff/ManageStaff.jsx";
 
 const router = createBrowserRouter([
   {
@@ -38,6 +39,10 @@ const router = createBrowserRouter([
   {
     path: "/view-receipts",
     element: <ViewReceipts />,
+  },
+  {
+    path: "/manage-staff",
+    element: <ManageStaff />,
   },
 ]);
 
