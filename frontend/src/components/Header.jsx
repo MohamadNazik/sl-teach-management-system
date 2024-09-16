@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import heart from "../assets/icons/white_heart.svg";
 import home from "../assets/icons/home.svg";
 
-const Header = ({ page, isDashboard }) => {
+const Header = ({ page, isDashboard, role }) => {
   return (
     <div className="bg-[#BF3606] w-full h-20 flex justify-between items-center pl-16 pr-16 text-white relative">
       <div>
@@ -11,14 +11,29 @@ const Header = ({ page, isDashboard }) => {
       </div>
       <div className="flex justify-between  w-32 md:w-40 items-center">
         {isDashboard ? (
-          <div className="flex flex-col items-center justify-center pt-3">
-            <img src={heart} alt="" className="w-4 md:w-5" />
-            <p className="text-[0.6rem] md:text-xs">Favourites</p>
-          </div>
+          <Link to={"/favourites"}>
+            <div className="flex flex-col items-center justify-center pt-3">
+              <img src={heart} alt="" className="w-4 md:w-5" />
+              <p className="text-[0.6rem] md:text-xs">Favourites</p>
+            </div>
+          </Link>
         ) : (
-          <div className="flex flex-col items-center justify-center pt-3">
-            <img src={home} alt="" className="w-5 md:w-6" />
-            <p className="text-[0.6rem] md:text-xs">Home</p>
+          <div>
+            {role == 1 ? (
+              <Link to={"/admin-dashboard"}>
+                <div className="flex flex-col items-center justify-center pt-3">
+                  <img src={home} alt="" className="w-5 md:w-6" />
+                  <p className="text-[0.6rem] md:text-xs">Home</p>
+                </div>
+              </Link>
+            ) : (
+              <Link to={"/staff-dashboard"}>
+                <div className="flex flex-col items-center justify-center pt-3">
+                  <img src={home} alt="" className="w-5 md:w-6" />
+                  <p className="text-[0.6rem] md:text-xs">Home</p>
+                </div>
+              </Link>
+            )}
           </div>
         )}
 

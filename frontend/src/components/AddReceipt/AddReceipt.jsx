@@ -7,7 +7,7 @@ import inputFields from "../../assets/sample_data/InputFields";
 const AddReceipt = () => {
   return (
     <section>
-      <Header page="Add Receipt" isDashboard={false} />
+      <Header page="Add Receipt" isDashboard={false} role={0} />
       <div className="w-[100] m-5 bg-white p-10 rounded-xl">
         <form action="" className="flex flex-col items-start gap-5">
           {inputFields.map((field, index) =>
