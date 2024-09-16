@@ -37,7 +37,6 @@ export const adminLoginController = async (req, res) => {
       }
     );
 
-    // Send back the token and user info
     res.status(200).send({
       success: true,
       message: "Login successful",
@@ -47,7 +46,7 @@ export const adminLoginController = async (req, res) => {
         name: user.name,
         role: user.role,
       },
-      token, // Return the JWT token here
+      token,
     });
   } catch (error) {
     console.log(error);

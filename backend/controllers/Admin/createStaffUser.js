@@ -5,7 +5,6 @@ export const createStaffUserController = async (req, res) => {
   try {
     const { name, staffId, password, confirmPassword } = req.body;
 
-    // Validation checks
     if (!name) {
       return res.status(500).send({ error: "Name is Required" });
     }
@@ -25,7 +24,6 @@ export const createStaffUserController = async (req, res) => {
       });
     }
 
-    // Check if staffId already exists
     const existingUser = await admins.findOne({ staffId: staffId });
     if (existingUser) {
       return res.status(400).send({
@@ -34,18 +32,15 @@ export const createStaffUserController = async (req, res) => {
       });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create new staff member
     const staff = new admins({
       name,
       staffId,
       password: hashedPassword,
-      role: 0, // Assuming role 0 is for staff members
+      role: 0,
     });
 
-    // Save the staff member to the database
     await staff.save();
 
     res.status(200).send({
