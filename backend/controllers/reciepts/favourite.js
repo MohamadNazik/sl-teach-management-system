@@ -1,6 +1,5 @@
 import Favourite from "../../models/favourite.js";
 import inputDetails from "../../models/inputDetails.js";
-import mongoose from "mongoose";
 
 export const addFavouriteController = async (req, res) => {
   try {
