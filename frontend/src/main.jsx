@@ -44,6 +44,10 @@ const router = createBrowserRouter([
     path: "/manage-staff",
     element: <ManageStaff />,
   },
+  {
+    path: "*",
+    element: <div>Page not found!</div>,
+  },
 ]);
 
 createRoot(document.getElementById("root")).render(

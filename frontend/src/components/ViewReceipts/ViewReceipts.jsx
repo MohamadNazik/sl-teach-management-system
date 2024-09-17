@@ -4,6 +4,9 @@ import Header from "../Header";
 import DataTable from "react-data-table-component";
 import receipts from "../../assets/sample_data/Receipts";
 
+import lineHeart from "../../assets/icons/lineheart.svg";
+import redFillHeart from "../../assets/icons/redfillheart.svg";
+
 const customStylesForModal = {
   content: {
     top: "50%",
@@ -97,12 +100,16 @@ const ViewReceipts = () => {
           <button className="ml-3 text-md font-medium bg-red-700 px-3 py-2 text-white rounded-md hover:bg-red-900">
             Delete
           </button>
+
+          <div>
+            <img src={lineHeart} alt="" className="ml-3 w-5 cursor-pointer" />
+          </div>
         </>
       ),
       ignoreRowClick: true,
       allowOverflow: true,
       button: true,
-      width: "200px",
+      width: "240px",
     },
   ];
 

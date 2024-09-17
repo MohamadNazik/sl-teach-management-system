@@ -156,29 +156,32 @@ const ManageStaff = () => {
           </h2>
           <div className="w-[20rem] sm:w-[40rem] h-[25rem] sm:h-[24rem] overflow-auto flex flex-col gap-3 items-start mb-4">
             <form className="flex flex-col gap-2 w-[20rem] sm:w-[38rem]">
-              {Object.entries(currentReceipt).map(([key, value], index) => (
-                <div key={index} className="mb-4">
-                  <label
-                    htmlFor={key}
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    {key.charAt(0).toUpperCase() + key.slice(1)}
-                  </label>
-                  <input
-                    id={key}
-                    name={key}
-                    type="text"
-                    value={value}
-                    onChange={(e) => {
-                      setCurrentReceipt((prev) => ({
-                        ...prev,
-                        [key]: e.target.value,
-                      }));
-                    }}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  />
-                </div>
-              ))}
+              {Object.entries(currentReceipt).map(
+                ([key, value], index) =>
+                  key !== "role" && ( // Skip if the key is "role"
+                    <div key={index} className="mb-4">
+                      <label
+                        htmlFor={key}
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        {key.charAt(0).toUpperCase() + key.slice(1)}
+                      </label>
+                      <input
+                        id={key}
+                        name={key}
+                        type="text"
+                        value={value}
+                        onChange={(e) => {
+                          setCurrentReceipt((prev) => ({
+                            ...prev,
+                            [key]: e.target.value,
+                          }));
+                        }}
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      />
+                    </div>
+                  )
+              )}
               <div>
                 <button
                   type="submit"
