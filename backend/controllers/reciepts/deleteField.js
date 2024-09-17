@@ -1,7 +1,7 @@
 import inputDetails from "../../models/inputDetails.js";
 import recieptModel from "../../models/recieptModel.js";
 
-export const deleteRecieptController = async (req, res) => {
+export const deleteFieldController = async (req, res) => {
   try {
     const { fieldName } = req.body;
     if (!fieldName) {
