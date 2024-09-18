@@ -1,9 +1,21 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useContext, useState } from "react";
+import { json, Link, replace, useNavigate } from "react-router-dom";
 import heart from "../assets/icons/white_heart.svg";
 import home from "../assets/icons/home.svg";
+import { AuthContext } from "../utils/context/AuthContext";
 
 const Header = ({ page, isDashboard, role }) => {
+  const { logout } = useContext(AuthContext);
+
+  const currentUser = JSON.parse(localStorage.getItem("user"));
+
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/", { replace: true });
+  };
+
   return (
     <div className="bg-[#BF3606] w-full h-20 flex justify-between items-center pl-16 pr-16 text-white relative">
       <div>
@@ -19,7 +31,7 @@ const Header = ({ page, isDashboard, role }) => {
           </Link>
         ) : (
           <div>
-            {role == 1 ? (
+            {currentUser.role === 1 ? (
               <Link to={"/admin-dashboard"}>
                 <div className="flex flex-col items-center justify-center pt-3">
                   <img src={home} alt="" className="w-5 md:w-6" />
@@ -37,9 +49,12 @@ const Header = ({ page, isDashboard, role }) => {
           </div>
         )}
 
-        <Link to={"/"}>
-          <h2 className="text-md md:text-xl font-semibold">LOGOUT</h2>
-        </Link>
+        <h2
+          className="text-md md:text-xl font-semibold cursor-pointer"
+          onClick={handleLogout}
+        >
+          LOGOUT
+        </h2>
       </div>
       <div className="absolute top-20 sm:top-0 left-1/2 transform -translate-x-1/2 bg-[#F05924] px-8 pt-1 pb-2 rounded-br-lg rounded-bl-lg drop-shadow-lg ">
         <h2 className="text-lg tracking-wider text-center">{page}</h2>

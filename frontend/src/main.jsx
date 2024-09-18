@@ -10,6 +10,9 @@ import ChangeForm from "./components/ChangeForm/ChangeForm.jsx";
 import Favourites from "./components/Favourites/Favourites.jsx";
 import ViewReceipts from "./components/ViewReceipts/ViewReceipts.jsx";
 import ManageStaff from "./components/ManageStaff/ManageStaff.jsx";
+import { AuthContextProvider } from "./utils/context/AuthContext.jsx";
+import AdminProtectiveRoutes from "./utils/AdminProtectiveRoutes.jsx";
+import StaffProtectiveRoutes from "./utils/StaffProtectiveRoutes.jsx";
 
 const router = createBrowserRouter([
   {
@@ -18,11 +21,19 @@ const router = createBrowserRouter([
   },
   {
     path: "/staff-dashboard",
-    element: <StaffDashboard />,
+    element: (
+      <StaffProtectiveRoutes>
+        <StaffDashboard />
+      </StaffProtectiveRoutes>
+    ),
   },
   {
     path: "/admin-dashboard",
-    element: <AdminDashboard />,
+    element: (
+      <AdminProtectiveRoutes>
+        <AdminDashboard />
+      </AdminProtectiveRoutes>
+    ),
   },
   {
     path: "/add-receipt",
@@ -30,7 +41,11 @@ const router = createBrowserRouter([
   },
   {
     path: "/change-form",
-    element: <ChangeForm />,
+    element: (
+      <AdminProtectiveRoutes>
+        <ChangeForm />
+      </AdminProtectiveRoutes>
+    ),
   },
   {
     path: "/favourites",
@@ -42,7 +57,11 @@ const router = createBrowserRouter([
   },
   {
     path: "/manage-staff",
-    element: <ManageStaff />,
+    element: (
+      <AdminProtectiveRoutes>
+        <ManageStaff />
+      </AdminProtectiveRoutes>
+    ),
   },
   {
     path: "*",
@@ -52,6 +71,8 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <AuthContextProvider>
+      <RouterProvider router={router} />
+    </AuthContextProvider>
   </StrictMode>
 );

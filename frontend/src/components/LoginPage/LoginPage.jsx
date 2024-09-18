@@ -1,7 +1,63 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useContext, useEffect, useState } from "react";
+import { Link, replace, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { AuthContext } from "../../utils/context/AuthContext";
 
 const LoginPage = () => {
+  const [staffId, setStaffId] = useState("");
+  const [password, setPassword] = useState("");
+  const { currentUser, login, logout } = useContext(AuthContext);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (currentUser) {
+      if (currentUser.role === 1) {
+        navigate("/admin-dashboard", { replace: true });
+      } else if (currentUser.role === 0) {
+        navigate("/staff-dashboard", { replace: true });
+      } else {
+        navigate("/");
+      }
+    }
+  }, [currentUser, navigate]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!currentUser) {
+      try {
+        const response = await axios.post(
+          "http://localhost:30000/api/admin/admin-login",
+          {
+            staffId,
+            password,
+          }
+        );
+
+        // console.log(response);
+        // console.log(response.data.success);
+        // console.log(response.data.user);
+
+        if (response.data.success) {
+          const { user } = response.data;
+          login(user);
+          if (user.role === 1) {
+            navigate("/admin-dashboard", { replace: true });
+          } else if (user.role === 0) {
+            navigate("/staff-dashboard", { replace: true });
+          } else {
+            navigate("/");
+          }
+        } else {
+          console.log("Request failed!");
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  };
+
   return (
     <section className="h-screen flex items-center justify-center bg-[url('/src/assets/background/login.png')] bg-cover">
       <div className="w-96 flex flex-col items-center">
@@ -13,7 +69,7 @@ const LoginPage = () => {
             Receipt Management System
           </h3>
         </div>
-        <form action="" className=" flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className=" flex flex-col gap-4">
           <div className="relative text-white/50 focus-within:text-white">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <svg
@@ -42,8 +98,11 @@ const LoginPage = () => {
             </div>
             <input
               type="text"
+              value={staffId}
+              onChange={(e) => setStaffId(e.target.value)}
               className="block w-full max-w-xs pr-4 pl-12 py-2 text-md font-normal shadow-xs text-white bg-transparent border border-white rounded-md placeholder-white/50 focus:outline-none leading-relaxed tracking-wider"
               placeholder="STAFF ID"
+              required
             />
           </div>
           <div className="relative text-white/50 focus-within:text-white">
@@ -84,18 +143,20 @@ const LoginPage = () => {
             </div>
             <input
               type="text"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="block w-full max-w-xs pr-4 pl-12 py-2 text-md font-normal shadow-xs text-white bg-transparent border border-white rounded-md placeholder-white/50 focus:outline-none leading-relaxed tracking-wider"
               placeholder="PASSWORD"
+              required
             />
           </div>
-          <Link to={"/staff-dashboard"}>
-            <button
-              type="submit"
-              className="text-md rounded-md w-80 pl-6 pr-6 pt-2 pb-2 bg-white mt-8 font-semibold text-[#BF3606]"
-            >
-              LOGIN
-            </button>
-          </Link>
+
+          <button
+            type="submit"
+            className="text-md rounded-md w-80 pl-6 pr-6 pt-2 pb-2 bg-white mt-8 font-semibold text-[#BF3606]"
+          >
+            LOGIN
+          </button>
           <div className="w-full flex justify-center mt-3">
             <p className="text-sm text-white/75 hover:text-white hover:scale-105 cursor-pointer transition-all ease-in-out duration-300">
               Forgot password? click here

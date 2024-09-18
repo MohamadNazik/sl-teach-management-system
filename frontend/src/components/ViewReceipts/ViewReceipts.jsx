@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Modal from "react-modal";
+import axios from "axios";
 import Header from "../Header";
 import DataTable from "react-data-table-component";
 import receipts from "../../assets/sample_data/Receipts";
@@ -53,6 +54,76 @@ const ViewReceipts = () => {
   const [viewModalIsOpen, setviewModalIsOpen] = useState(false);
   const [editModalIsOpen, setEditModalIsOpen] = useState(false);
   const [currentReceipt, setCurrentReceipt] = useState({});
+  const [resData, setResData] = useState([]);
+  const [columns, setColumns] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:30000/api/receipt/get-receipts"
+        );
+
+        // console.log(response);
+
+        setResData(response.data.result);
+
+        // Generate columns based on data
+        const columns = Object.keys(response.data.result[0].fields || {})
+          .filter((key) => {
+            const value = response.data.result[0].fields[key];
+            return typeof value !== "object" || !value.path;
+          })
+          .map((key) => ({
+            name: key.charAt(0).toUpperCase() + key.slice(1), // Capitalize the first letter
+            selector: (row) => row.fields[key],
+            sortable: true,
+            field: key,
+          }));
+
+        // Add custom columns for 'Colors' and 'Actions'
+        columns.push({
+          name: "Actions",
+          cell: (row) => (
+            <>
+              <button
+                className="text-md font-medium bg-blue-700 px-3 py-2 text-white rounded-md hover:bg-blue-900"
+                onClick={() => openViewReceiptModal(row)}
+              >
+                View
+              </button>
+              <button
+                className="ml-3 text-md font-medium bg-green-700 px-3 py-2 text-white rounded-md hover:bg-green-900"
+                onClick={() => openEditModal(row)}
+              >
+                Edit
+              </button>
+              <button className="ml-3 text-md font-medium bg-red-700 px-3 py-2 text-white rounded-md hover:bg-red-900">
+                Delete
+              </button>
+
+              <div>
+                <img
+                  src={lineHeart}
+                  alt=""
+                  className="ml-3 w-5 cursor-pointer"
+                />
+              </div>
+            </>
+          ),
+          width: "250px",
+        });
+
+        setColumns(columns);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {}, [resData]);
 
   function openViewReceiptModal(receipt) {
     setReceipt(receipt);
@@ -72,46 +143,43 @@ const ViewReceipts = () => {
     setEditModalIsOpen(false);
   }
 
-  const columns = [
-    ...Object.keys(receipts[0]).map((key) => {
-      return {
-        name: key.charAt(0).toUpperCase() + key.slice(1), // Capitalize the first letter
-        selector: (row) => row[key], // Access the dynamic key
-        sortable: true,
-        field: key, // Add field key for reference
-      };
-    }),
-    {
-      name: "Actions",
-      cell: (row) => (
-        <>
-          <button
-            className="text-md font-medium bg-blue-700 px-3 py-2 text-white rounded-md hover:bg-blue-900"
-            onClick={() => openViewReceiptModal(row)}
-          >
-            View
-          </button>
-          <button
-            className="ml-3 text-md font-medium bg-green-700 px-3 py-2 text-white rounded-md hover:bg-green-900"
-            onClick={() => openEditModal(row)}
-          >
-            Edit
-          </button>
-          <button className="ml-3 text-md font-medium bg-red-700 px-3 py-2 text-white rounded-md hover:bg-red-900">
-            Delete
-          </button>
+  // const columns = [
+  //   ...Object.keys(receipts[0]).map((key) => {
+  //     return {
+  //       name: key.charAt(0).toUpperCase() + key.slice(1), // Capitalize the first letter
+  //       selector: (row) => row[key], // Access the dynamic key
+  //       sortable: true,
+  //       field: key, // Add field key for reference
+  //     };
+  //   }),
+  //   {
+  //     name: "Actions",
+  //     cell: (row) => (
+  //       <>
+  //         <button
+  //           className="text-md font-medium bg-blue-700 px-3 py-2 text-white rounded-md hover:bg-blue-900"
+  //           onClick={() => openViewReceiptModal(row)}
+  //         >
+  //           View
+  //         </button>
+  //         <button
+  //           className="ml-3 text-md font-medium bg-green-700 px-3 py-2 text-white rounded-md hover:bg-green-900"
+  //           onClick={() => openEditModal(row)}
+  //         >
+  //           Edit
+  //         </button>
+  //         <button className="ml-3 text-md font-medium bg-red-700 px-3 py-2 text-white rounded-md hover:bg-red-900">
+  //           Delete
+  //         </button>
 
-          <div>
-            <img src={lineHeart} alt="" className="ml-3 w-5 cursor-pointer" />
-          </div>
-        </>
-      ),
-      ignoreRowClick: true,
-      allowOverflow: true,
-      button: true,
-      width: "240px",
-    },
-  ];
+  //         <div>
+  //           <img src={lineHeart} alt="" className="ml-3 w-5 cursor-pointer" />
+  //         </div>
+  //       </>
+  //     ),
+  //     width: "250px",
+  //   },
+  // ];
 
   const isFile = (value) => {
     // Check common file extensions for images, PDFs, or any file types
@@ -192,12 +260,13 @@ const ViewReceipts = () => {
       <div className="w-[100] m-5 bg-white p-2 rounded-xl">
         <DataTable
           columns={columns}
-          data={records}
+          data={resData}
           customStyles={customStyles}
           pagination
           paginationRowsPerPageOptions={[50, 100, 200, 500, 1000, 1500]} // Custom dropdown valuess
           paginationPerPage={50}
         />
+        {/* {console.log("Columns : ", columns)} */}
       </div>
 
       {/* View modal */}

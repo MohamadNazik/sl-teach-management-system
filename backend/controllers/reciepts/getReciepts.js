@@ -11,7 +11,7 @@ export const getRecieptsController = async (req, res) => {
     } else {
       return res.status(200).send({
         success: true,
-        data: result,
+        result,
         message: "reciepts getting successfully",
       });
     }

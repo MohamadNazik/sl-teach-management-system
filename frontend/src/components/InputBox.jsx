@@ -1,6 +1,13 @@
 import React from "react";
 
-const InputBox = ({ type, label, options }) => {
+const InputBox = ({ type, label, options, onChange }) => {
+  const formatString = (str) => {
+    // Remove all white spaces and make the first letter lowercase
+    const noSpaces = str.trim().replace(/\s+/g, ""); // Remove all spaces
+    return noSpaces.charAt(0).toLowerCase() + noSpaces.slice(1);
+  };
+
+  const fieldValue = formatString(label);
   return (
     <div>
       <p className="text-md font-medium mb-2">{label}</p>
@@ -8,7 +15,7 @@ const InputBox = ({ type, label, options }) => {
         {type === "select" ? (
           <select
             id=""
-            className="h-12 block w-[20rem] xl:w-[22rem] pr-4 pl-3 py-2 text-md font-normal shadow-xs text-black bg-transparent border border-black rounded-md placeholder-black/50 focus:outline-none leading-relaxed"
+            className="h-12 block w-[19rem] sm:w-[30rem] pr-4 pl-3 py-2 text-md font-normal shadow-xs text-black bg-transparent border border-black rounded-md placeholder-black/50 focus:outline-none leading-relaxed"
           >
             <option value="" selected>
               Choose an option
@@ -19,16 +26,13 @@ const InputBox = ({ type, label, options }) => {
                   {option.label}
                 </option>
               ))}
-            {/* <option selected>Choose a country</option>
-            <option value="US">United States</option>
-            <option value="CA">Canada</option>
-            <option value="FR">France</option>
-            <option value="DE">Germany</option> */}
           </select>
         ) : (
           <input
             type={type}
-            className="block w-[20rem] xl:w-[22rem] pr-4 pl-3 py-2 text-md font-normal shadow-xs text-black bg-transparent border border-black rounded-md placeholder-black/50 focus:outline-none leading-relaxed "
+            name={label}
+            onChange={onChange}
+            className="block w-[19rem] sm:w-[30rem]  pr-4 pl-3 py-2 text-md font-normal shadow-xs text-black bg-transparent border border-black rounded-md placeholder-black/50 focus:outline-none leading-relaxed "
           />
         )}
       </div>
