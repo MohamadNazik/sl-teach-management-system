@@ -9,8 +9,8 @@ import { createStaffUserController } from "../controllers/Admin/createStaffUser.
 const router = express.Router();
 
 router.post("/admin-login", adminLoginController);
-router.get("/get-all-staff", requireSignIn, getAllStaff);
-router.delete("/delete-staff-user/:id", requireSignIn, deleteStaffController);
-router.post("/create-staff-user", requireSignIn, createStaffUserController);
+router.get("/get-all-staff", getAllStaff);
+router.delete("/delete-staff/:id", deleteStaffController);
+router.post("/create-staff", createStaffUserController);
 
 export default router;

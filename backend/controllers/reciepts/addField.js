@@ -40,7 +40,7 @@ export const addFieldsController = async (req, res) => {
     );
 
     res.status(200).send({
-      success: false,
+      success: true,
       message: "Field added and details schema updated!",
     });
   } catch (error) {

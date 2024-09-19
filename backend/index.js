@@ -15,7 +15,7 @@ ConnectDB();
 app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
-app.use(formidable({ multiples: true }));
+// app.use(formidable({ multiples: true }));
 const PORT = process.env.PORT || 8000;
 
 app.use("/api/admin", adminRoute);

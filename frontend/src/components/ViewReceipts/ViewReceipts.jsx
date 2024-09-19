@@ -3,7 +3,7 @@ import Modal from "react-modal";
 import axios from "axios";
 import Header from "../Header";
 import DataTable from "react-data-table-component";
-import receipts from "../../assets/sample_data/Receipts";
+// import receipts from "../../assets/sample_data/Receipts";
 
 import lineHeart from "../../assets/icons/lineheart.svg";
 import redFillHeart from "../../assets/icons/redfillheart.svg";
@@ -49,13 +49,15 @@ const customStyles = {
 };
 
 const ViewReceipts = () => {
-  const [records, setRecords] = useState(receipts);
-  const [receipt, setReceipt] = useState(null);
+  // const [records, setRecords] = useState(receipts);
+  // const [receipt, setReceipt] = useState(null);
   const [viewModalIsOpen, setviewModalIsOpen] = useState(false);
   const [editModalIsOpen, setEditModalIsOpen] = useState(false);
   const [currentReceipt, setCurrentReceipt] = useState({});
   const [resData, setResData] = useState([]);
   const [columns, setColumns] = useState([]);
+
+  const [deleteButtonClicked, setDeleteButtonClicked] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -69,17 +71,21 @@ const ViewReceipts = () => {
         setResData(response.data.result);
 
         // Generate columns based on data
-        const columns = Object.keys(response.data.result[0].fields || {})
-          .filter((key) => {
-            const value = response.data.result[0].fields[key];
-            return typeof value !== "object" || !value.path;
-          })
-          .map((key) => ({
+        const columns = Object.keys(response.data.result[0].fields || {}).map(
+          (key) => ({
             name: key.charAt(0).toUpperCase() + key.slice(1), // Capitalize the first letter
-            selector: (row) => row.fields[key],
+            selector: (row) => {
+              const value = row.fields[key];
+              // Handle cases where the value is an object (like for "Upload Image")
+              if (typeof value === "object" && value !== null && value.path) {
+                return <p>{value.name}</p>;
+              }
+              return value;
+            },
             sortable: true,
             field: key,
-          }));
+          })
+        );
 
         // Add custom columns for'Actions'
         columns.push({
@@ -98,7 +104,10 @@ const ViewReceipts = () => {
               >
                 Edit
               </button>
-              <button className="ml-3 text-md font-medium bg-red-700 px-3 py-2 text-white rounded-md hover:bg-red-900">
+              <button
+                className="ml-3 text-md font-medium bg-red-700 px-3 py-2 text-white rounded-md hover:bg-red-900"
+                onClick={() => handleDeleteButton(row)}
+              >
                 Delete
               </button>
 
@@ -120,10 +129,63 @@ const ViewReceipts = () => {
       }
     };
 
+    setDeleteButtonClicked(false);
+
     fetchData();
-  }, []);
+  }, [editModalIsOpen, deleteButtonClicked]);
 
   useEffect(() => {}, [resData]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const id = currentReceipt._id;
+    // console.log(id);
+    try {
+      const response = await axios.post(
+        `http://localhost:30000/api/receipt/update-receipt/${id}`,
+        currentReceipt.fields,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      // console.log("Response:", response.data);
+      // document.querySelector("form").reset();
+      if (response.data.success) {
+        setEditModalIsOpen(false);
+      }
+    } catch (error) {
+      console.error("Error submitting form", error);
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setCurrentReceipt((prevReceipt) => ({
+      ...prevReceipt,
+      fields: {
+        ...prevReceipt.fields,
+        [name]: value,
+      },
+    }));
+  };
+
+  const handleDeleteButton = async (receipt) => {
+    const id = receipt._id;
+    try {
+      const response = await axios.delete(
+        `http://localhost:30000/api/receipt/delete-receipt/${id}`
+      );
+      // console.log("Response:", response.data);
+      if (response.data.success) {
+        setDeleteButtonClicked(true);
+        // console.log(response.data.message);
+      }
+    } catch (error) {
+      console.error("Error submitting form", error);
+    }
+  };
 
   function openViewReceiptModal(receipt) {
     setCurrentReceipt(receipt);
@@ -132,6 +194,7 @@ const ViewReceipts = () => {
 
   function closeViewModal() {
     setviewModalIsOpen(false);
+    setCurrentReceipt({});
   }
 
   function openEditModal(receipt) {
@@ -142,44 +205,6 @@ const ViewReceipts = () => {
   function closeEditModal() {
     setEditModalIsOpen(false);
   }
-
-  // const columns = [
-  //   ...Object.keys(receipts[0]).map((key) => {
-  //     return {
-  //       name: key.charAt(0).toUpperCase() + key.slice(1), // Capitalize the first letter
-  //       selector: (row) => row[key], // Access the dynamic key
-  //       sortable: true,
-  //       field: key, // Add field key for reference
-  //     };
-  //   }),
-  //   {
-  //     name: "Actions",
-  //     cell: (row) => (
-  //       <>
-  //         <button
-  //           className="text-md font-medium bg-blue-700 px-3 py-2 text-white rounded-md hover:bg-blue-900"
-  //           onClick={() => openViewReceiptModal(row)}
-  //         >
-  //           View
-  //         </button>
-  //         <button
-  //           className="ml-3 text-md font-medium bg-green-700 px-3 py-2 text-white rounded-md hover:bg-green-900"
-  //           onClick={() => openEditModal(row)}
-  //         >
-  //           Edit
-  //         </button>
-  //         <button className="ml-3 text-md font-medium bg-red-700 px-3 py-2 text-white rounded-md hover:bg-red-900">
-  //           Delete
-  //         </button>
-
-  //         <div>
-  //           <img src={lineHeart} alt="" className="ml-3 w-5 cursor-pointer" />
-  //         </div>
-  //       </>
-  //     ),
-  //     width: "250px",
-  //   },
-  // ];
 
   const isFile = (value) => {
     // Check common file extensions for images, PDFs, or any file types
@@ -231,15 +256,6 @@ const ViewReceipts = () => {
     }
   };
 
-  // const handleChange = (field, e) => {
-  //   let query = e.target.value; // Get the value from the input field
-  //   const newRecords = receipts.filter(
-  //     (item) =>
-  //       item[field]?.toLocaleLowerCase().includes(query.toLocaleLowerCase()) // Use the field parameter
-  //   );
-  //   setRecords(newRecords); // Update the state with the filtered records
-  // };
-
   return (
     <section>
       <Header page="View Receipts" isDashboard={false} />
@@ -278,29 +294,41 @@ const ViewReceipts = () => {
         contentLabel="Receipt Details"
       >
         <h2 className="text-xl font-bold text-start mb-4 text-[#BF3606]">
-          View Receipt Detils
+          View Receipt Details
         </h2>
         <div className="w-[20rem] sm:w-[40rem] h-[30rem] overflow-auto flex flex-col gap-3 items-start mb-4">
-          {console.log(resData)}
           {currentReceipt && currentReceipt.fields && (
             <>
-              {Object.entries(currentReceipt.fields) // Access `fields` from currentReceipt
-                .filter(
-                  ([key, value]) => typeof value !== "object" || !value.path
-                ) // Skip object fields with path
-                .map(([key, value], index) => (
+              {Object.entries(currentReceipt.fields).map(
+                ([key, value], index) => (
                   <div
                     key={index}
                     className="sm:w-[35rem] flex items-center justify-start p-2 pl-0 gap-2 text-md font-medium"
                   >
                     {key.charAt(0).toUpperCase() + key.slice(1)}:{" "}
-                    {typeof value === "string" && isFile(value) ? (
-                      renderFile(value, key) // Render file (image or other)
+                    {value && value.path ? (
+                      // Handle the case where the value is an object with a valid path
+                      <a
+                        href={value.path}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-medium bg-blue-700 px-3 py-2 text-white rounded-md hover:bg-blue-900"
+                      >
+                        View Image
+                      </a>
+                    ) : typeof value === "string" ||
+                      typeof value === "number" ? (
+                      // Render normal value
+                      <h3 className="text-sm font-normal">{value}</h3>
                     ) : (
-                      <h3 className="text-sm font-normal">{value}</h3> // Render normal value
+                      // Fallback for null/undefined value or unsupported type
+                      <h3 className="text-sm font-normal text-gray-500">
+                        Invalid Data
+                      </h3>
                     )}
                   </div>
-                ))}
+                )
+              )}
             </>
           )}
         </div>
@@ -318,30 +346,32 @@ const ViewReceipts = () => {
           Edit Receipt
         </h2>
         <div className="w-[20rem] sm:w-[40rem] h-[30rem] overflow-auto flex flex-col gap-3 items-start mb-4">
-          <form className="flex flex-col gap-2 w-[20rem] sm:w-[38rem]">
-            {Object.entries(currentReceipt).map(([key, value], index) => (
-              <div key={index} className="mb-4">
-                <label
-                  htmlFor={key}
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  {key.charAt(0).toUpperCase() + key.slice(1)}
-                </label>
-                <input
-                  id={key}
-                  name={key}
-                  type="text"
-                  value={value}
-                  onChange={(e) => {
-                    setCurrentReceipt((prev) => ({
-                      ...prev,
-                      [key]: e.target.value,
-                    }));
-                  }}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                />
-              </div>
-            ))}
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col gap-2 w-[20rem] sm:w-[38rem]"
+          >
+            {currentReceipt &&
+              currentReceipt.fields &&
+              Object.entries(currentReceipt.fields).map(
+                ([key, value], index) => (
+                  <div key={index} className="mb-4">
+                    <label
+                      htmlFor={key}
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      {key.charAt(0).toUpperCase() + key.slice(1)}
+                    </label>
+                    <input
+                      id={key}
+                      name={key}
+                      type="text"
+                      value={currentReceipt.fields[key] || ""} // Ensure the value is set correctly
+                      onChange={handleChange}
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    />
+                  </div>
+                )
+              )}
             <div>
               <button
                 type="submit"

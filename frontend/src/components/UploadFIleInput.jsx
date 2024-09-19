@@ -1,6 +1,6 @@
 import React from "react";
 
-const UploadFIleInput = ({ label, onChange }) => {
+const UploadFIleInput = ({ label, onChange, requiredField }) => {
   // const formatString = (str) => {
   //   // Remove all white spaces and make the first letter lowercase
   //   const noSpaces = str.trim().replace(/\s+/g, ""); // Remove all spaces
@@ -16,6 +16,7 @@ const UploadFIleInput = ({ label, onChange }) => {
           <input
             type="file"
             name={label}
+            required={requiredField}
             onChange={onChange}
             className="ml-3"
           />

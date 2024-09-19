@@ -38,7 +38,7 @@ const AddReceipt = () => {
           },
         }
       );
-      console.log("Response:", response.data);
+      // console.log("Response:", response.data);
       setFormData(new FormData()); // Reset FormData
       document.querySelector("form").reset();
     } catch (error) {
@@ -69,6 +69,7 @@ const AddReceipt = () => {
               <UploadFIleInput
                 key={index}
                 label={field.fieldName}
+                requiredField={field.required}
                 onChange={handleChange}
               />
             ) : (
@@ -76,6 +77,7 @@ const AddReceipt = () => {
                 key={index}
                 type={field.fieldType}
                 label={field.fieldName}
+                requiredField={field.required}
                 onChange={handleChange}
               />
             )

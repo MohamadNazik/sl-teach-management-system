@@ -2,11 +2,11 @@ import admins from "../../models/admins.js";
 
 export const getAllStaff = async (req, res) => {
   try {
-    const user = await admins.find({ role: 0 });
+    const users = await admins.find({ role: 0 });
     res.status(200).send({
-      status: true,
+      success: true,
       message: "All staff retrieved successfully",
-      data: user,
+      users,
     });
   } catch (error) {
     res.status(500).send({

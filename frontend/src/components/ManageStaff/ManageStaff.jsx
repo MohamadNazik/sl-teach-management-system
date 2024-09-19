@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import Modal from "react-modal";
 import Header from "../Header";
 import InputBox from "../InputBox";
@@ -23,7 +24,7 @@ const customStylesForModal = {
 const customStyles = {
   cells: {
     style: {
-      fontSize: "0.75rem",
+      fontSize: "0.85rem",
     },
   },
   header: {
@@ -40,27 +41,91 @@ const customStyles = {
       },
       color: "white",
       fontWeight: "500",
-      fontSize: "0.8rem",
+      fontSize: "1rem",
     },
   },
 };
 
 const ManageStaff = () => {
-  const [addNewClicked, setAddNewClicked] = useState(false);
   const [editModalIsOpen, setEditModalIsOpen] = useState(false);
-  const [currentReceipt, setCurrentReceipt] = useState({});
+  const [currentUser, setCurrentUser] = useState({});
 
-  function openEditModal(receipt) {
-    setCurrentReceipt(receipt);
-    setEditModalIsOpen(true);
-  }
+  const [resData, setResData] = useState([]);
+  const [deleteButtonClicked, setDeleteButtonClicked] = useState(false);
+  const [addButtonClicked, setAddButtonClicked] = useState(false);
+  const [name, setName] = useState("");
+  const [staffId, setStaffId] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  function closeEditModal() {
-    setEditModalIsOpen(false);
-  }
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:30000/api/admin/get-all-staff"
+        );
 
-  const handleClick = () => {
-    setAddNewClicked((prevState) => !prevState);
+        // console.log(response);
+        if (response.data.success) {
+          setResData(response.data.users);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    // setDeleteButtonClicked(false);
+
+    fetchData();
+  }, [deleteButtonClicked, addButtonClicked]);
+
+  const handleDeleteButton = async (user) => {
+    const id = user._id;
+    try {
+      const response = await axios.delete(
+        `http://localhost:30000/api/admin/delete-staff/${id}`
+      );
+      // console.log("Response:", response.data);
+      if (response.data.success) {
+        setDeleteButtonClicked((prev) => !prev);
+        // console.log(response.data.message);
+      }
+    } catch (error) {
+      console.error("Error submitting form", error);
+    }
+  };
+
+  // function openEditModal(user) {
+  //   setCurrentUser(user);
+  //   setEditModalIsOpen(true);
+  // }
+
+  // function closeEditModal() {
+  //   setEditModalIsOpen(false);
+  //   setCurrentUser({});
+  // }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post(
+        "http://localhost:30000/api/admin/create-staff",
+        {
+          name: name,
+          staffId: staffId,
+          password: password,
+          confirmPassword: confirmPassword,
+        }
+      );
+
+      // console.log(response);
+      if (response.data.success) {
+        setAddButtonClicked((prev) => !prev);
+        document.querySelector("form").reset();
+      }
+    } catch (error) {
+      console.error("Error deleting field", error);
+    }
   };
 
   const columns = [
@@ -74,33 +139,27 @@ const ManageStaff = () => {
       selector: (row) => row.name,
       sortable: true,
     },
-    {
-      name: "Password",
-      selector: (row) => row.password,
-    },
-    // {
-    //   name: "Role",
-    //   selector: (row) => row.role,
-    //   // sortable: true,
-    // },
+
     {
       name: "Actions",
       cell: (row) => (
         <>
-          <button
+          {/* <button
             className="ml-3 text-md font-medium bg-green-700 px-3 py-2 text-white rounded-md hover:bg-green-900"
             onClick={() => openEditModal(row)}
           >
             Edit
-          </button>
-          <button className="ml-3 text-md font-medium bg-red-700 px-3 py-2 text-white rounded-md hover:bg-red-900">
+          </button> */}
+          <button
+            className="ml-3 text-md font-medium bg-red-700 px-3 py-2 text-white rounded-md hover:bg-red-900"
+            onClick={(e) => {
+              handleDeleteButton(row);
+            }}
+          >
             Delete
           </button>
         </>
       ),
-      ignoreRowClick: true,
-      allowOverflow: true,
-      button: true,
       width: "150px",
     },
   ];
@@ -111,7 +170,7 @@ const ManageStaff = () => {
         <div className="flex flex-col gap-4 rounded-xl">
           <DataTable
             columns={columns}
-            data={users} // Using the imported dataset
+            data={resData} // Using the imported dataset
             pagination
             customStyles={customStyles}
             paginationRowsPerPageOptions={[5, 10, 15, 20, 25]} // Custom dropdown valuess
@@ -120,10 +179,34 @@ const ManageStaff = () => {
         </div>
         <div className="bg-white w-[25rem] lg:w-[40rem] p-10 flex flex-col items-center rounded-xl drop-shadow-xl">
           <h3 className="text-lg font-medium mb-8">ADD NEW STAFF</h3>
-          <form action="" className="flex flex-col gap-[1.5rem] items-center">
-            <InputBox type="text" label="Name" />
-            <InputBox type="text" label="Staff ID" />
-            <InputBox type="text" label="Password" />
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col gap-[1.5rem] items-center"
+          >
+            <InputBox
+              type="text"
+              label="Name"
+              requiredField={true}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <InputBox
+              type="text"
+              label="Staff ID"
+              requiredField={true}
+              onChange={(e) => setStaffId(e.target.value)}
+            />
+            <InputBox
+              type="text"
+              label="Password"
+              requiredField={true}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <InputBox
+              type="text"
+              label="Confirm Password"
+              requiredField={true}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
 
             <div className="flex gap-5">
               <button
@@ -145,7 +228,7 @@ const ManageStaff = () => {
 
         {/* Edit modal */}
 
-        <Modal
+        {/* <Modal
           isOpen={editModalIsOpen}
           onRequestClose={closeEditModal}
           style={customStylesForModal}
@@ -156,9 +239,10 @@ const ManageStaff = () => {
           </h2>
           <div className="w-[20rem] sm:w-[40rem] h-[25rem] sm:h-[24rem] overflow-auto flex flex-col gap-3 items-start mb-4">
             <form className="flex flex-col gap-2 w-[20rem] sm:w-[38rem]">
-              {Object.entries(currentReceipt).map(
+              {Object.entries(currentUser).map(
                 ([key, value], index) =>
-                  key !== "role" && ( // Skip if the key is "role"
+                  key !== "role" &&
+                  key !== "_id" && ( // Skip if the key is "role"
                     <div key={index} className="mb-4">
                       <label
                         htmlFor={key}
@@ -172,7 +256,7 @@ const ManageStaff = () => {
                         type="text"
                         value={value}
                         onChange={(e) => {
-                          setCurrentReceipt((prev) => ({
+                          setCurrentUser((prev) => ({
                             ...prev,
                             [key]: e.target.value,
                           }));
@@ -199,14 +283,7 @@ const ManageStaff = () => {
               </div>
             </form>
           </div>
-        </Modal>
-
-        {/* <button
-          className="text-md rounded-md w-52 ml-[8rem] pl-6 pr-6 pt-2 pb-2 bg-[#BF3606] mt-8 font-semibold text-white"
-          onClick={handleClick}
-        >
-          Add New
-        </button> */}
+        </Modal> */}
       </div>
     </section>
   );

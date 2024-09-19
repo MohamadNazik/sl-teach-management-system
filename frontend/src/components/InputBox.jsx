@@ -1,6 +1,6 @@
 import React from "react";
 
-const InputBox = ({ type, label, options, onChange }) => {
+const InputBox = ({ type, label, options, onChange, requiredField }) => {
   const formatString = (str) => {
     // Remove all white spaces and make the first letter lowercase
     const noSpaces = str.trim().replace(/\s+/g, ""); // Remove all spaces
@@ -15,11 +15,12 @@ const InputBox = ({ type, label, options, onChange }) => {
         {type === "select" ? (
           <select
             id=""
+            name={label}
+            required={requiredField}
+            onChange={onChange}
             className="h-12 block w-[19rem] sm:w-[30rem] pr-4 pl-3 py-2 text-md font-normal shadow-xs text-black bg-transparent border border-black rounded-md placeholder-black/50 focus:outline-none leading-relaxed"
           >
-            <option value="" selected>
-              Choose an option
-            </option>
+            <option value="">Choose an option</option>
             {options &&
               options.map((option, index) => (
                 <option key={index} value={option.value}>
@@ -31,6 +32,7 @@ const InputBox = ({ type, label, options, onChange }) => {
           <input
             type={type}
             name={label}
+            required={requiredField}
             onChange={onChange}
             className="block w-[19rem] sm:w-[30rem]  pr-4 pl-3 py-2 text-md font-normal shadow-xs text-black bg-transparent border border-black rounded-md placeholder-black/50 focus:outline-none leading-relaxed "
           />
