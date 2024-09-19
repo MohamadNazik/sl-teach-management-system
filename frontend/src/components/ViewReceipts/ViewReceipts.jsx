@@ -81,7 +81,7 @@ const ViewReceipts = () => {
             field: key,
           }));
 
-        // Add custom columns for 'Colors' and 'Actions'
+        // Add custom columns for'Actions'
         columns.push({
           name: "Actions",
           cell: (row) => (
@@ -126,7 +126,7 @@ const ViewReceipts = () => {
   useEffect(() => {}, [resData]);
 
   function openViewReceiptModal(receipt) {
-    setReceipt(receipt);
+    setCurrentReceipt(receipt);
     setviewModalIsOpen(true);
   }
 
@@ -281,21 +281,26 @@ const ViewReceipts = () => {
           View Receipt Detils
         </h2>
         <div className="w-[20rem] sm:w-[40rem] h-[30rem] overflow-auto flex flex-col gap-3 items-start mb-4">
-          {receipt && (
+          {console.log(resData)}
+          {currentReceipt && currentReceipt.fields && (
             <>
-              {Object.entries(receipt).map(([key, value], index) => (
-                <div
-                  key={index}
-                  className="sm:w-[35rem] flex items-center justify-start p-2 pl-0 gap-2 text-md font-medium"
-                >
-                  {key.charAt(0).toUpperCase() + key.slice(1)}:{" "}
-                  {typeof value === "string" && isFile(value) ? (
-                    renderFile(value, key) // Render file (image or other)
-                  ) : (
-                    <h3 className="text-sm font-normal">{value}</h3> // Render normal value
-                  )}
-                </div>
-              ))}
+              {Object.entries(currentReceipt.fields) // Access `fields` from currentReceipt
+                .filter(
+                  ([key, value]) => typeof value !== "object" || !value.path
+                ) // Skip object fields with path
+                .map(([key, value], index) => (
+                  <div
+                    key={index}
+                    className="sm:w-[35rem] flex items-center justify-start p-2 pl-0 gap-2 text-md font-medium"
+                  >
+                    {key.charAt(0).toUpperCase() + key.slice(1)}:{" "}
+                    {typeof value === "string" && isFile(value) ? (
+                      renderFile(value, key) // Render file (image or other)
+                    ) : (
+                      <h3 className="text-sm font-normal">{value}</h3> // Render normal value
+                    )}
+                  </div>
+                ))}
             </>
           )}
         </div>
