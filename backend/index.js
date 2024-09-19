@@ -20,7 +20,7 @@ const PORT = process.env.PORT || 8000;
 
 app.use("/api/admin", adminRoute);
 app.use("/api/auth", authRoute);
-app.use("/api/reciept", recieptRoute);
+app.use("/api/receipt", recieptRoute);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port  http://localhost:${PORT}`);
