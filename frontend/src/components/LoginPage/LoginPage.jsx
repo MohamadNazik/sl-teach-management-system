@@ -3,6 +3,11 @@ import { Link, replace, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AuthContext } from "../../utils/context/AuthContext";
 
+import { toast } from "react-toastify";
+import { Bounce } from "react-toastify";
+
+import "react-toastify/dist/ReactToastify.css";
+
 const LoginPage = () => {
   const [staffId, setStaffId] = useState("");
   const [password, setPassword] = useState("");
@@ -14,8 +19,30 @@ const LoginPage = () => {
     if (currentUser) {
       if (currentUser.role === 1) {
         navigate("/admin-dashboard", { replace: true });
+        toast.success(`Already logged is as ${currentUser.name}`, {
+          position: "top-right",
+          autoClose: 2500,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+          transition: Bounce,
+        });
       } else if (currentUser.role === 0) {
         navigate("/staff-dashboard", { replace: true });
+        toast.success(`Already logged is as ${currentUser.name}`, {
+          position: "top-right",
+          autoClose: 2500,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+          transition: Bounce,
+        });
       } else {
         navigate("/");
       }
@@ -26,35 +53,90 @@ const LoginPage = () => {
     e.preventDefault();
 
     if (!currentUser) {
-      try {
-        const response = await axios.post(
-          "http://localhost:30000/api/admin/admin-login",
-          {
-            staffId,
-            password,
-          }
-        );
+      axios
+        .post("http://localhost:30000/api/admin/admin-login", {
+          staffId,
+          password,
+        })
+        .then((response) => {
+          // console.log(response);
 
-        // console.log(response);
-        // console.log(response.data.success);
-        // console.log(response.data.user);
+          if (response.data.success) {
+            const { user } = response.data;
+            login(user);
 
-        if (response.data.success) {
-          const { user } = response.data;
-          login(user);
-          if (user.role === 1) {
-            navigate("/admin-dashboard", { replace: true });
-          } else if (user.role === 0) {
-            navigate("/staff-dashboard", { replace: true });
+            if (user.role === 1) {
+              navigate("/admin-dashboard", { replace: true });
+              toast.success(`Successfully logged in as ${user.name}`, {
+                position: "top-right",
+                autoClose: 2500,
+                hideProgressBar: true,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+                theme: "colored",
+                transition: Bounce,
+              });
+            } else if (user.role === 0) {
+              navigate("/staff-dashboard", { replace: true });
+              toast.success(`Successfully logged in as ${user.name}`, {
+                position: "top-right",
+                autoClose: 2500,
+                hideProgressBar: true,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+                theme: "colored",
+                transition: Bounce,
+              });
+            } else {
+              navigate("/");
+            }
           } else {
-            navigate("/");
+            toast.error(response.data.message, {
+              position: "top-right",
+              autoClose: 2000,
+              hideProgressBar: true,
+              closeOnClick: true,
+              pauseOnHover: false,
+              draggable: true,
+              progress: undefined,
+              theme: "colored",
+              transition: Bounce,
+            });
           }
-        } else {
-          console.log("Request failed!");
-        }
-      } catch (error) {
-        console.log(error);
-      }
+        })
+        .catch((error) => {
+          if (error.response) {
+            // Handle invalid credentials
+            toast.error(error.response.data.message, {
+              position: "top-right",
+              autoClose: 2000,
+              hideProgressBar: true,
+              closeOnClick: true,
+              pauseOnHover: false,
+              draggable: true,
+              progress: undefined,
+              theme: "colored",
+              transition: Bounce,
+            });
+          } else {
+            // Handle server or network error
+            toast.error("Server Error!", {
+              position: "top-right",
+              autoClose: 2000,
+              hideProgressBar: true,
+              closeOnClick: true,
+              pauseOnHover: false,
+              draggable: true,
+              progress: undefined,
+              theme: "colored",
+              transition: Bounce,
+            });
+          }
+        });
     }
   };
 
