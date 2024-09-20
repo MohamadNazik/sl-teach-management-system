@@ -5,7 +5,7 @@ import UserOTPVerification from "../../models/UserOTPVerification.js";
 import nodemailer from "nodemailer";
 export const forgotPAsswordController = async (req, res) => {
   try {
-    const { _id, email } = req.body;
+    const { email } = req.body;
 
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
