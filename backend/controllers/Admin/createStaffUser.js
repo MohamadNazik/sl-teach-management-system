@@ -3,13 +3,16 @@ import bcrypt from "bcrypt";
 
 export const createStaffUserController = async (req, res) => {
   try {
-    const { name, staffId, password, confirmPassword } = req.body;
+    const { name, staffId, email, password, confirmPassword } = req.body;
 
     if (!name) {
       return res.status(500).send({ error: "Name is Required" });
     }
     if (!staffId) {
       return res.status(500).send({ error: "Staff ID is Required" });
+    }
+    if (!email) {
+      return res.status(500).send({ error: "Email is Required" });
     }
     if (!password) {
       return res.status(500).send({ error: "Password is Required" });
@@ -37,6 +40,7 @@ export const createStaffUserController = async (req, res) => {
     const staff = new admins({
       name,
       staffId,
+      email,
       password: hashedPassword,
       role: 0,
     });
