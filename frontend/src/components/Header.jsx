@@ -1,5 +1,9 @@
 import React, { useContext, useState } from "react";
-import { json, Link, replace, useNavigate } from "react-router-dom";
+
+import { toastAlert } from "../utils/Alerts/toastAlert";
+import { sweetAlert } from "../utils/Alerts/sweetAlert";
+
+import { Link, useNavigate } from "react-router-dom";
 import heart from "../assets/icons/white_heart.svg";
 import home from "../assets/icons/home.svg";
 import { AuthContext } from "../utils/context/AuthContext";
@@ -12,8 +16,14 @@ const Header = ({ page, isDashboard, role }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();
-    navigate("/", { replace: true });
+    sweetAlert("Are you sure you want to\nlog out?").then((result) => {
+      if (result.isConfirmed) {
+        logout();
+        navigate("/", { replace: true });
+        toastAlert("success", "You have been logged out");
+      } else if (result.isDenied) {
+      }
+    });
   };
 
   return (

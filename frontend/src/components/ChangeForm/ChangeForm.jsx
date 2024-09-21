@@ -4,6 +4,8 @@ import axios from "axios";
 // import inputFields from "../../assets/sample_data/InputFields";
 import InputBox from "../InputBox";
 import crossIcon from "../../assets/icons/cross.svg";
+import { sweetAlert } from "../../utils/Alerts/sweetAlert";
+import { toastAlert } from "../../utils/Alerts/toastAlert";
 
 const ChangeForm = () => {
   const [inputFields, setInputFields] = useState([]);
@@ -33,18 +35,34 @@ const ChangeForm = () => {
   }, [deleteButtonClicked, addButtonClicked]);
 
   const handleDeleteButton = useCallback(async (name) => {
-    try {
-      const response = await axios.post(
-        "http://localhost:30000/api/receipt/delete-field",
-        { fieldName: name }
-      );
-      if (response.data.success) {
-        setDeleteButtonClicked((prev) => !prev); // Toggle to trigger re-fetch
-        // console.log(response.data.message);
+    sweetAlert(`Are you sure you want to delete the "${name}" field?`).then(
+      (result) => {
+        if (result.isConfirmed) {
+          axios
+            .post("http://localhost:30000/api/receipt/delete-field", {
+              fieldName: name,
+            })
+            .then((response) => {
+              if (response.data.success) {
+                setDeleteButtonClicked((prev) => !prev); // Toggle to trigger re-fetch
+                // console.log(response.data.message);
+                toastAlert("success", `"${name}" field is Deleted !`);
+              }
+            })
+            .catch((error) => {
+              // console.error("Error deleting field", error);
+              if (error.response) {
+                // Handle invalid credentials
+                toastAlert("error", error.response.data.message);
+              } else {
+                // Handle server or network error
+                toastAlert("error", "Server Error!");
+              }
+            });
+        } else if (result.isDenied) {
+        }
       }
-    } catch (error) {
-      console.error("Error deleting field", error);
-    }
+    );
   }, []);
 
   // console.log("FieldName: ", fieldName);
@@ -53,19 +71,30 @@ const ChangeForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const response = await axios.post(
-        "http://localhost:30000/api/receipt/add-field",
-        { fieldName: fieldName, fieldType: fieldType, required: required }
-      );
-      if (response.data.success) {
-        setAddButtonClicked((prev) => !prev); // Toggle to trigger re-fetch
-        document.querySelector("form").reset();
-        // console.log(response.data.message);
-      }
-    } catch (error) {
-      console.error("Error deleting field", error);
-    }
+    axios
+      .post("http://localhost:30000/api/receipt/add-field", {
+        fieldName: fieldName,
+        fieldType: fieldType,
+        required: required,
+      })
+      .then((response) => {
+        if (response.data.success) {
+          setAddButtonClicked((prev) => !prev); // Toggle to trigger re-fetch
+          document.querySelector("form").reset(); // Reset the form fields
+          // console.log(response.data.message);
+          toastAlert("success", `"${fieldName}" field Added !`);
+        }
+      })
+      .catch((error) => {
+        // console.error("Error adding field", error);
+        if (error.response) {
+          // Handle invalid credentials
+          toastAlert("error", error.response.data.message);
+        } else {
+          // Handle server or network error
+          toastAlert("error", "Server Error!");
+        }
+      });
   };
 
   return (
@@ -74,7 +103,10 @@ const ChangeForm = () => {
       <div className="w-[100] m-5 bg-white p-10 flex flex-col xl:flex-row items-start gap-8 xl:gap-40 rounded-xl">
         <div className="flex flex-col gap-4">
           {inputFields.map((field, index) => (
-            <div className="flex gap-3 items-center w-[30rem] border-2 border-black rounded-md p-2">
+            <div
+              key={index}
+              className="flex gap-3 items-center w-[30rem] border-2 border-black rounded-md p-2"
+            >
               <img
                 src={crossIcon}
                 alt=""

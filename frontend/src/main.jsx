@@ -14,6 +14,9 @@ import { AuthContextProvider } from "./utils/context/AuthContext.jsx";
 import AdminProtectiveRoutes from "./utils/AdminProtectiveRoutes.jsx";
 import StaffProtectiveRoutes from "./utils/StaffProtectiveRoutes.jsx";
 
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -72,6 +75,7 @@ const router = createBrowserRouter([
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <AuthContextProvider>
+      <ToastContainer newestOnTop={true} />
       <RouterProvider router={router} />
     </AuthContextProvider>
   </StrictMode>

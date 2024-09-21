@@ -1,7 +1,10 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Link, replace, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AuthContext } from "../../utils/context/AuthContext";
+
+import "react-toastify/dist/ReactToastify.css";
+import { toastAlert } from "../../utils/Alerts/toastAlert";
 
 const LoginPage = () => {
   const [staffId, setStaffId] = useState("");
@@ -14,8 +17,10 @@ const LoginPage = () => {
     if (currentUser) {
       if (currentUser.role === 1) {
         navigate("/admin-dashboard", { replace: true });
+        toastAlert("success", `Already logged in as ${currentUser.name}`);
       } else if (currentUser.role === 0) {
         navigate("/staff-dashboard", { replace: true });
+        toastAlert("success", `Already logged in as ${currentUser.name}`);
       } else {
         navigate("/");
       }
@@ -26,35 +31,40 @@ const LoginPage = () => {
     e.preventDefault();
 
     if (!currentUser) {
-      try {
-        const response = await axios.post(
-          "http://localhost:30000/api/admin/admin-login",
-          {
-            staffId,
-            password,
-          }
-        );
+      axios
+        .post("http://localhost:30000/api/admin/admin-login", {
+          staffId,
+          password,
+        })
+        .then((response) => {
+          // console.log(response);
 
-        // console.log(response);
-        // console.log(response.data.success);
-        // console.log(response.data.user);
+          if (response.data.success) {
+            const { user } = response.data;
+            login(user);
 
-        if (response.data.success) {
-          const { user } = response.data;
-          login(user);
-          if (user.role === 1) {
-            navigate("/admin-dashboard", { replace: true });
-          } else if (user.role === 0) {
-            navigate("/staff-dashboard", { replace: true });
+            if (user.role === 1) {
+              navigate("/admin-dashboard", { replace: true });
+              toastAlert("success", `Successfully logged in as ${user.name}`);
+            } else if (user.role === 0) {
+              navigate("/staff-dashboard", { replace: true });
+              toastAlert("success", `Successfully logged in as ${user.name}`);
+            } else {
+              navigate("/");
+            }
           } else {
-            navigate("/");
+            toastAlert("error", response.data.message);
           }
-        } else {
-          console.log("Request failed!");
-        }
-      } catch (error) {
-        console.log(error);
-      }
+        })
+        .catch((error) => {
+          if (error.response) {
+            // Handle invalid credentials
+            toastAlert("error", error.response.data.message);
+          } else {
+            // Handle server or network error
+            toastAlert("error", "Server Error!");
+          }
+        });
     }
   };
 
