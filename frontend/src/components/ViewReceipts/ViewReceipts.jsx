@@ -7,6 +7,8 @@ import DataTable from "react-data-table-component";
 
 import lineHeart from "../../assets/icons/lineheart.svg";
 import redFillHeart from "../../assets/icons/redfillheart.svg";
+import { sweetAlert } from "../../utils/Alerts/sweetAlert";
+import { toastAlert } from "../../utils/Alerts/toastAlert";
 
 const customStylesForModal = {
   content: {
@@ -173,18 +175,46 @@ const ViewReceipts = () => {
 
   const handleDeleteButton = async (receipt) => {
     const id = receipt._id;
-    try {
-      const response = await axios.delete(
-        `http://localhost:30000/api/receipt/delete-receipt/${id}`
-      );
-      // console.log("Response:", response.data);
-      if (response.data.success) {
-        setDeleteButtonClicked(true);
-        // console.log(response.data.message);
+    console.log(receipt);
+    sweetAlert("Are you sure you want to delete the receipt?").then(
+      (result) => {
+        if (result.isConfirmed) {
+          axios
+            .delete(`http://localhost:30000/api/receipt/delete-receipt/${id}`)
+            .then((response) => {
+              // console.log("Response:", response.data);
+              if (response.data.success) {
+                setDeleteButtonClicked(true);
+                toastAlert("success", "Receipt Deleted !");
+                // console.log(response.data.message);
+              }
+            })
+            .catch((error) => {
+              // console.error("Error submitting form", error);
+              if (error.response) {
+                // Handle invalid credentials
+                toastAlert("error", error.response.data.message);
+              } else {
+                // Handle server or network error
+                toastAlert("error", "Server Error!");
+              }
+            });
+        } else if (result.isDenied) {
+        }
       }
-    } catch (error) {
-      console.error("Error submitting form", error);
-    }
+    );
+    // try {
+    //   const response = await axios.delete(
+    //     `http://localhost:30000/api/receipt/delete-receipt/${id}`
+    //   );
+    //   // console.log("Response:", response.data);
+    //   if (response.data.success) {
+    //     setDeleteButtonClicked(true);
+    //     // console.log(response.data.message);
+    //   }
+    // } catch (error) {
+    //   console.error("Error submitting form", error);
+    // }
   };
 
   function openViewReceiptModal(receipt) {
@@ -292,6 +322,7 @@ const ViewReceipts = () => {
         onRequestClose={closeViewModal}
         style={customStylesForModal}
         contentLabel="Receipt Details"
+        ariaHideApp={false}
       >
         <h2 className="text-xl font-bold text-start mb-4 text-[#BF3606]">
           View Receipt Details
@@ -341,6 +372,7 @@ const ViewReceipts = () => {
         onRequestClose={closeEditModal}
         style={customStylesForModal}
         contentLabel="Edit Receipt"
+        ariaHideApp={false}
       >
         <h2 className="text-xl font-bold text-start mb-4 text-[#BF3606]">
           Edit Receipt

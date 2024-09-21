@@ -1,12 +1,10 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Link, replace, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AuthContext } from "../../utils/context/AuthContext";
 
-import { toast } from "react-toastify";
-import { Bounce } from "react-toastify";
-
 import "react-toastify/dist/ReactToastify.css";
+import { toastAlert } from "../../utils/Alerts/toastAlert";
 
 const LoginPage = () => {
   const [staffId, setStaffId] = useState("");
@@ -19,30 +17,10 @@ const LoginPage = () => {
     if (currentUser) {
       if (currentUser.role === 1) {
         navigate("/admin-dashboard", { replace: true });
-        toast.success(`Already logged is as ${currentUser.name}`, {
-          position: "top-right",
-          autoClose: 2500,
-          hideProgressBar: true,
-          closeOnClick: true,
-          pauseOnHover: false,
-          draggable: true,
-          progress: undefined,
-          theme: "colored",
-          transition: Bounce,
-        });
+        toastAlert("success", `Already logged in as ${currentUser.name}`);
       } else if (currentUser.role === 0) {
         navigate("/staff-dashboard", { replace: true });
-        toast.success(`Already logged is as ${currentUser.name}`, {
-          position: "top-right",
-          autoClose: 2500,
-          hideProgressBar: true,
-          closeOnClick: true,
-          pauseOnHover: false,
-          draggable: true,
-          progress: undefined,
-          theme: "colored",
-          transition: Bounce,
-        });
+        toastAlert("success", `Already logged in as ${currentUser.name}`);
       } else {
         navigate("/");
       }
@@ -67,74 +45,24 @@ const LoginPage = () => {
 
             if (user.role === 1) {
               navigate("/admin-dashboard", { replace: true });
-              toast.success(`Successfully logged in as ${user.name}`, {
-                position: "top-right",
-                autoClose: 2500,
-                hideProgressBar: true,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: true,
-                progress: undefined,
-                theme: "colored",
-                transition: Bounce,
-              });
+              toastAlert("success", `Successfully logged in as ${user.name}`);
             } else if (user.role === 0) {
               navigate("/staff-dashboard", { replace: true });
-              toast.success(`Successfully logged in as ${user.name}`, {
-                position: "top-right",
-                autoClose: 2500,
-                hideProgressBar: true,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: true,
-                progress: undefined,
-                theme: "colored",
-                transition: Bounce,
-              });
+              toastAlert("success", `Successfully logged in as ${user.name}`);
             } else {
               navigate("/");
             }
           } else {
-            toast.error(response.data.message, {
-              position: "top-right",
-              autoClose: 2000,
-              hideProgressBar: true,
-              closeOnClick: true,
-              pauseOnHover: false,
-              draggable: true,
-              progress: undefined,
-              theme: "colored",
-              transition: Bounce,
-            });
+            toastAlert("error", response.data.message);
           }
         })
         .catch((error) => {
           if (error.response) {
             // Handle invalid credentials
-            toast.error(error.response.data.message, {
-              position: "top-right",
-              autoClose: 2000,
-              hideProgressBar: true,
-              closeOnClick: true,
-              pauseOnHover: false,
-              draggable: true,
-              progress: undefined,
-              theme: "colored",
-              transition: Bounce,
-            });
+            toastAlert("error", error.response.data.message);
           } else {
             // Handle server or network error
-            toast.error("Server Error!", {
-              position: "top-right",
-              autoClose: 2000,
-              hideProgressBar: true,
-              closeOnClick: true,
-              pauseOnHover: false,
-              draggable: true,
-              progress: undefined,
-              theme: "colored",
-              transition: Bounce,
-            });
+            toastAlert("error", "Server Error!");
           }
         });
     }

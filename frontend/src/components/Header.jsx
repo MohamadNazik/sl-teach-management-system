@@ -1,11 +1,9 @@
 import React, { useContext, useState } from "react";
-import Swal from "sweetalert2";
-import { toast } from "react-toastify";
-import { Bounce } from "react-toastify";
 
-import "react-toastify/dist/ReactToastify.css";
+import { toastAlert } from "../utils/Alerts/toastAlert";
+import { sweetAlert } from "../utils/Alerts/sweetAlert";
 
-import { json, Link, replace, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import heart from "../assets/icons/white_heart.svg";
 import home from "../assets/icons/home.svg";
 import { AuthContext } from "../utils/context/AuthContext";
@@ -18,28 +16,11 @@ const Header = ({ page, isDashboard, role }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    Swal.fire({
-      title: "Are you sure you want to\nlog out?",
-      showDenyButton: true,
-      showCancelButton: false,
-      confirmButtonText: "Yes",
-      denyButtonText: `No`,
-    }).then((result) => {
+    sweetAlert("Are you sure you want to\nlog out?").then((result) => {
       if (result.isConfirmed) {
         logout();
         navigate("/", { replace: true });
-
-        toast.success("You have been logged out", {
-          position: "top-right",
-          autoClose: 2500,
-          hideProgressBar: true,
-          closeOnClick: true,
-          pauseOnHover: false,
-          draggable: true,
-          progress: undefined,
-          theme: "colored",
-          transition: Bounce,
-        });
+        toastAlert("success", "You have been logged out");
       } else if (result.isDenied) {
       }
     });
