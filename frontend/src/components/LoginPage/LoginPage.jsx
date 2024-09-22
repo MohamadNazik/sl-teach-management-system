@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AuthContext } from "../../utils/context/AuthContext";
 
@@ -9,7 +9,7 @@ import { toastAlert } from "../../utils/Alerts/toastAlert";
 const LoginPage = () => {
   const [staffId, setStaffId] = useState("");
   const [password, setPassword] = useState("");
-  const { currentUser, login, logout } = useContext(AuthContext);
+  const { currentUser, login } = useContext(AuthContext);
 
   const navigate = useNavigate();
 
@@ -168,9 +168,11 @@ const LoginPage = () => {
             LOGIN
           </button>
           <div className="w-full flex justify-center mt-3">
-            <p className="text-sm text-white/75 hover:text-white hover:scale-105 cursor-pointer transition-all ease-in-out duration-300">
-              Forgot password? click here
-            </p>
+            <Link to={"/forgot-password"}>
+              <p className="text-sm text-white/75 hover:text-white hover:scale-105 cursor-pointer transition-all ease-in-out duration-300">
+                Forgot password? click here
+              </p>
+            </Link>
           </div>
         </form>
       </div>

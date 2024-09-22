@@ -3,8 +3,10 @@ import React from "react";
 const InputBox = ({ type, label, options, onChange, requiredField }) => {
   const formatString = (str) => {
     // Remove all white spaces and make the first letter lowercase
-    const noSpaces = str.trim().replace(/\s+/g, ""); // Remove all spaces
-    return noSpaces.charAt(0).toLowerCase() + noSpaces.slice(1);
+    if (str) {
+      const noSpaces = str.trim().replace(/\s+/g, ""); // Remove all spaces
+      return noSpaces.charAt(0).toLowerCase() + noSpaces.slice(1);
+    }
   };
 
   const fieldValue = formatString(label);
