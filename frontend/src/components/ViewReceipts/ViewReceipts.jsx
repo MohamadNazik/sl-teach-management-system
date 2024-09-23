@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Modal from "react-modal";
 import axios from "axios";
 import Header from "../Header";
@@ -9,6 +9,7 @@ import lineHeart from "../../assets/icons/lineheart.svg";
 import redFillHeart from "../../assets/icons/redfillheart.svg";
 import { sweetAlert } from "../../utils/Alerts/sweetAlert";
 import { toastAlert } from "../../utils/Alerts/toastAlert";
+import { AuthContext } from "../../utils/context/AuthContext";
 
 const customStylesForModal = {
   content: {
@@ -60,81 +61,185 @@ const ViewReceipts = () => {
   const [columns, setColumns] = useState([]);
 
   const [deleteButtonClicked, setDeleteButtonClicked] = useState(false);
+  const [favoriteReceipts, setFavoriteReceipts] = useState([]);
+  const { currentUser } = useContext(AuthContext);
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const response = await axios.get(
-          "http://localhost:30000/api/receipt/get-receipts"
-        );
+      axios
+        .get("http://localhost:30000/api/receipt/get-receipts")
+        .then((response) => {
+          // console.log(response);
 
-        // console.log(response);
+          setResData(response.data.result);
 
-        setResData(response.data.result);
+          // Generate columns based on data
+          const columns = Object.keys(response.data.result[0].fields || {}).map(
+            (key) => ({
+              name: key.charAt(0).toUpperCase() + key.slice(1), // Capitalize the first letter
+              selector: (row) => {
+                const value = row.fields[key];
+                // Handle cases where the value is an object (like for "Upload Image")
+                if (typeof value === "object" && value !== null && value.path) {
+                  return <p>{value.name}</p>;
+                }
+                return value;
+              },
+              sortable: true,
+              field: key,
+            })
+          );
 
-        // Generate columns based on data
-        const columns = Object.keys(response.data.result[0].fields || {}).map(
-          (key) => ({
-            name: key.charAt(0).toUpperCase() + key.slice(1), // Capitalize the first letter
-            selector: (row) => {
-              const value = row.fields[key];
-              // Handle cases where the value is an object (like for "Upload Image")
-              if (typeof value === "object" && value !== null && value.path) {
-                return <p>{value.name}</p>;
-              }
-              return value;
-            },
-            sortable: true,
-            field: key,
-          })
-        );
+          // Add custom columns for 'Actions'
+          columns.push({
+            name: "Actions",
+            cell: (row) => (
+              <>
+                <button
+                  className="text-md font-medium bg-blue-700 px-3 py-2 text-white rounded-md hover:bg-blue-900"
+                  onClick={() => openViewReceiptModal(row)}
+                >
+                  View
+                </button>
+                <button
+                  className="ml-3 text-md font-medium bg-green-700 px-3 py-2 text-white rounded-md hover:bg-green-900"
+                  onClick={() => openEditModal(row)}
+                >
+                  Edit
+                </button>
+                <button
+                  className="ml-3 text-md font-medium bg-red-700 px-3 py-2 text-white rounded-md hover:bg-red-900"
+                  onClick={() => handleDeleteButton(row)}
+                >
+                  Delete
+                </button>
 
-        // Add custom columns for'Actions'
-        columns.push({
-          name: "Actions",
-          cell: (row) => (
-            <>
-              <button
-                className="text-md font-medium bg-blue-700 px-3 py-2 text-white rounded-md hover:bg-blue-900"
-                onClick={() => openViewReceiptModal(row)}
-              >
-                View
-              </button>
-              <button
-                className="ml-3 text-md font-medium bg-green-700 px-3 py-2 text-white rounded-md hover:bg-green-900"
-                onClick={() => openEditModal(row)}
-              >
-                Edit
-              </button>
-              <button
-                className="ml-3 text-md font-medium bg-red-700 px-3 py-2 text-white rounded-md hover:bg-red-900"
-                onClick={() => handleDeleteButton(row)}
-              >
-                Delete
-              </button>
+                <div>
+                  <img
+                    src={
+                      favoriteReceipts.includes(row._id)
+                        ? redFillHeart
+                        : lineHeart
+                    }
+                    alt=""
+                    className="ml-3 w-5 cursor-pointer"
+                    onClick={() => toggleFavorite(row._id, currentUser)}
+                  />
+                </div>
+              </>
+            ),
 
-              <div>
-                <img
-                  src={lineHeart}
-                  alt=""
-                  className="ml-3 w-5 cursor-pointer"
-                />
-              </div>
-            </>
-          ),
-          width: "250px",
+            width: "250px",
+          });
+
+          setColumns(columns);
+        })
+        .catch((error) => {
+          // console.error("Error fetching data:", error);
+          if (error.response && error.response.status === 404) {
+            // Handle error response from the server
+            toastAlert("error", error.response.data.message);
+          } else {
+            // Handle server or network error
+            toastAlert("error", error.response.data.message);
+          }
         });
-
-        setColumns(columns);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
     };
 
     setDeleteButtonClicked(false);
 
     fetchData();
-  }, [editModalIsOpen, deleteButtonClicked]);
+  }, [editModalIsOpen, deleteButtonClicked, currentUser, favoriteReceipts]);
+
+  useEffect(() => {
+    const fetchFavoriteReceipts = async () => {
+      if (currentUser) {
+        await axios
+          .get(
+            `http://localhost:30000/api/receipt/get-favourite/${currentUser.id}`
+          )
+          .then((favoritesResponse) => {
+            setFavoriteReceipts(
+              favoritesResponse.data.data.map((fav) => fav._id)
+            );
+          })
+          .catch((error) => {
+            // console.error("Error fetching favorite receipts:", error);
+            if (error.response && error.response.status === 404) {
+              setFavoriteReceipts([]);
+            } else {
+              toastAlert("error", error.response.data.message);
+            }
+          });
+      }
+    };
+
+    fetchFavoriteReceipts();
+  }, [currentUser]);
+
+  const toggleFavorite = async (receiptId, currentUser) => {
+    try {
+      const userId = currentUser.id;
+
+      if (favoriteReceipts.includes(receiptId)) {
+        // Remove from favorites
+        await axios
+          .post("http://localhost:30000/api/receipt/remove-favourite", {
+            userId: userId,
+            recieptId: receiptId,
+          })
+          .then((response) => {
+            // console.log(response);
+            if (response.data.success) {
+              setFavoriteReceipts(
+                favoriteReceipts.filter((id) => id !== receiptId)
+              );
+              toastAlert("success", "Removed from favorites");
+            }
+          })
+          .catch((error) => {
+            // console.error("Error fetching data:", error);
+            if (error.response && error.response.status === 404) {
+              // Handle error response from the server
+              toastAlert("error", error.response.data.message);
+            } else {
+              // Handle server or network error
+              toastAlert("error", error.response.data.message);
+            }
+          });
+      } else {
+        // Add to favorites
+        await axios
+          .post("http://localhost:30000/api/receipt/add-favourite", {
+            userId: userId,
+            recieptId: receiptId,
+          })
+          .then((response) => {
+            // console.log(response);
+            if (response.data.success) {
+              setFavoriteReceipts([...favoriteReceipts, receiptId]);
+              toastAlert("success", "Added to favorites");
+            }
+          })
+          .catch((error) => {
+            // console.error("Error fetching data:", error);
+            if (error.response && error.response.status === 404) {
+              // Handle error response from the server
+              toastAlert("error", error.response.data.message);
+            } else {
+              // Handle server or network error
+              toastAlert("error", error.response.data.message);
+            }
+          });
+      }
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        toastAlert("error", error.response.data.message);
+      } else {
+        toastAlert("error", error.response.data.message);
+      }
+    }
+  };
 
   useEffect(() => {}, [resData]);
 
@@ -163,12 +268,13 @@ const ViewReceipts = () => {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, type, value, files } = e.target;
+
     setCurrentReceipt((prevReceipt) => ({
       ...prevReceipt,
       fields: {
         ...prevReceipt.fields,
-        [name]: value,
+        [name]: type === "file" ? files[0] : value, // Handle file input
       },
     }));
   };
@@ -345,7 +451,7 @@ const ViewReceipts = () => {
                         rel="noopener noreferrer"
                         className="text-xs font-medium bg-blue-700 px-3 py-2 text-white rounded-md hover:bg-blue-900"
                       >
-                        View Image
+                        View
                       </a>
                     ) : typeof value === "string" ||
                       typeof value === "number" ? (
@@ -385,24 +491,53 @@ const ViewReceipts = () => {
             {currentReceipt &&
               currentReceipt.fields &&
               Object.entries(currentReceipt.fields).map(
-                ([key, value], index) => (
-                  <div key={index} className="mb-4">
-                    <label
-                      htmlFor={key}
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      {key.charAt(0).toUpperCase() + key.slice(1)}
-                    </label>
-                    <input
-                      id={key}
-                      name={key}
-                      type="text"
-                      value={currentReceipt.fields[key] || ""} // Ensure the value is set correctly
-                      onChange={handleChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    />
-                  </div>
-                )
+                ([key, value], index) => {
+                  // Check if the value is an object
+                  if (
+                    typeof value === "object" &&
+                    value !== null &&
+                    value.name &&
+                    value.type &&
+                    value.path
+                  ) {
+                    return (
+                      <div key={index} className="mb-4">
+                        <label
+                          htmlFor={key}
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          {key.charAt(0).toUpperCase() + key.slice(1)} (File)
+                        </label>
+                        <input
+                          id={key}
+                          name={key}
+                          type="file"
+                          onChange={handleChange}
+                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        />
+                      </div>
+                    );
+                  } else {
+                    return (
+                      <div key={index} className="mb-4">
+                        <label
+                          htmlFor={key}
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          {key.charAt(0).toUpperCase() + key.slice(1)}
+                        </label>
+                        <input
+                          id={key}
+                          name={key}
+                          type="text"
+                          value={currentReceipt.fields[key] || ""}
+                          onChange={handleChange}
+                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        />
+                      </div>
+                    );
+                  }
+                }
               )}
             <div>
               <button
