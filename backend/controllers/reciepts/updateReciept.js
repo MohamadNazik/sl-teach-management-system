@@ -1,5 +1,10 @@
 import inputDetails from "../../models/inputDetails.js";
 import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const updateRecieptController = async (req, res) => {
   try {
@@ -27,15 +32,31 @@ export const updateRecieptController = async (req, res) => {
     const sanitizedFields = sanitizeFields(fields);
 
     let updatedFiles = {};
+
+    const userDir = path.join(__dirname, "..", "uploads");
+
+    if (!fs.existsSync(userDir)) {
+      fs.mkdirSync(userDir, { recursive: true });
+    }
+
     if (Object.keys(files).length > 0) {
       for (const key in files) {
         const file = files[key];
-        const data = fs.readFileSync(file.path);
+
+        if (!file || !file.path || !file.name) {
+          return res.status(400).json({ message: "Invalid file upload" });
+        }
+
+        // Move new file to the upload directory
+        const tempPath = file.path;
+        const newFilePath = path.join(userDir, file.name);
+
+        fs.renameSync(tempPath, newFilePath);
 
         updatedFiles[key] = {
           name: file.name,
           type: file.type,
-          path: data,
+          path: newFilePath,
         };
       }
     }

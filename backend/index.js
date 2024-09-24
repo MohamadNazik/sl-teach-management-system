@@ -6,7 +6,8 @@ import cors from "cors";
 import adminRoute from "./routes/adminRoute.js";
 import authRoute from "./routes/authRoute.js";
 import recieptRoute from "./routes/recieptRoute.js";
-import formidable from "express-formidable";
+import filterRoute from "./routes/filterRoute.js";
+// import formidable from "express-formidable";
 
 dotenv.config();
 const app = express();
@@ -21,6 +22,7 @@ const PORT = process.env.PORT || 8000;
 app.use("/api/admin", adminRoute);
 app.use("/api/auth", authRoute);
 app.use("/api/receipt", recieptRoute);
+app.use("/api/filter", filterRoute);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port  http://localhost:${PORT}`);
