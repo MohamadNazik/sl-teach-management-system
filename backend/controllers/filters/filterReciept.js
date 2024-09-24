@@ -56,7 +56,14 @@ export const getFilters = async (req, res) => {
       });
     }
 
-    const query = { $and: filters };
+    if (filters.length === 0) {
+      return res.status(404).send({
+        success: false,
+        message: "No filters provided",
+      });
+    }
+
+    const query = filters.length > 0 ? { $and: filters } : {};
 
     const receipts = await inputDetails.find(query);
     console.log(receipts);
@@ -64,7 +71,7 @@ export const getFilters = async (req, res) => {
     if (receipts.length === 0) {
       return res.status(404).send({
         success: false,
-        message: "No receipts found for the given criteria.",
+        message: "No receipts found",
       });
     }
 

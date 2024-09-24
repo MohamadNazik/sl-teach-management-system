@@ -12,7 +12,9 @@ const InputBox = ({ type, label, options, onChange, requiredField }) => {
   const fieldValue = formatString(label);
   return (
     <div>
-      <p className="text-md font-medium mb-2">{label}</p>
+      <p className="text-md font-medium mb-2">
+        {label === "price" ? "Euro(price)" : label}
+      </p>
       <div className="relative text-black/50 focus-within:text-black">
         {type === "select" ? (
           <select

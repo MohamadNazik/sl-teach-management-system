@@ -4,6 +4,6 @@ import { getFilters } from "../controllers/filters/filterReciept.js";
 
 const router = express.Router();
 
-router.get("/get-filter", getFilters);
+router.post("/get-filter", getFilters);
 
 export default router;

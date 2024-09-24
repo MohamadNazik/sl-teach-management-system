@@ -1,4 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
+import { DatePicker, Space } from "antd";
+import moment from "moment";
 import Modal from "react-modal";
 import axios from "axios";
 import Header from "../Header";
@@ -76,7 +78,7 @@ const ViewReceipts = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      axios
+      await axios
         .get("http://localhost:30000/api/receipt/get-receipts")
         .then((response) => {
           // console.log(response);
@@ -172,7 +174,6 @@ const ViewReceipts = () => {
                 </button>
               </>
             ),
-
             width: "250px",
           });
 
@@ -312,13 +313,13 @@ const ViewReceipts = () => {
   };
 
   const handleChange = (e) => {
-    const { name, type, value, files } = e.target;
+    const { name, value } = e.target; // Removed 'type' since it's not used
 
     setCurrentReceipt((prevReceipt) => ({
       ...prevReceipt,
       fields: {
         ...prevReceipt.fields,
-        [name]: type === "file" ? files[0] : value, // Handle file input
+        [name]: value, // Update the specific field
       },
     }));
   };
@@ -436,23 +437,247 @@ const ViewReceipts = () => {
     }
   };
 
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [startTime, setStartTIme] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [month, setMonth] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [startCodiciId, setStartCodiciId] = useState("");
+  const [endCodiciId, setEndCodiciId] = useState("");
+
+  const filterDataFetch = async () => {
+    await axios
+      .post("http://localhost:30000/api/filter/get-filter", {
+        month: month,
+        minPrice: minPrice,
+        maxPrice: maxPrice,
+        startDate: startDate,
+        endDate: endDate,
+        startTime: startTime,
+        endTime: endTime,
+        startCodiciId: startCodiciId,
+        endCodiciId: endCodiciId,
+      })
+      .then((responce) => {
+        // console.log(responce);
+        setResData(responce.data.receipts);
+      })
+      .catch((error) => {
+        // console.error("Error fetching data:", error);
+        if (error.response && error.response.status === 404) {
+          // Handle error response from the server
+          toastAlert("error", error.response.data.message);
+        } else {
+          // Handle server or network error
+          toastAlert("error", error.response.data.message);
+        }
+      });
+  };
+
   return (
     <section>
       <Header page="View Receipts" isDashboard={false} />
 
-      {/* <div className="w-[100] m-5 bg-white p-2 rounded-xl">
-        <div>
-          {columns.map((col, index) => (
+      {/* Filters section */}
+
+      <div className="w-[100] m-5 bg-white py-7 px-5 rounded-xl flex flex-col gap-5 items-center">
+        <div className="flex gap-3">
+          <div className="bg-[#F05924] w-[7rem] px-2 pt-0.25 pb-0.5 text-white flex justify-between items-center rounded-lg">
+            <select
+              name="month"
+              onChange={(e) => {
+                setMonth(e.target.value);
+              }}
+              className="h-9 block w-[7rem] text-sm font-semibold text-white bg-transparent rounded-md placeholder-black/50 focus:outline-none leading-relaxed "
+            >
+              <option value="" className="text-black" disabled selected>
+                Month
+              </option>
+              <option value="1" className="text-black">
+                January
+              </option>
+              <option value="2" className="text-black">
+                February
+              </option>
+              <option value="3" className="text-black">
+                March
+              </option>
+              <option value="4" className="text-black">
+                April
+              </option>
+              <option value="5" className="text-black">
+                May
+              </option>
+              <option value="6" className="text-black">
+                June
+              </option>
+              <option value="7" className="text-black">
+                July
+              </option>
+              <option value="8" className="text-black">
+                August
+              </option>
+              <option value="9" className="text-black">
+                September
+              </option>
+              <option value="10" className="text-black">
+                October
+              </option>
+              <option value="11" className="text-black">
+                November
+              </option>
+              <option value="12" className="text-black">
+                December
+              </option>
+            </select>
+          </div>
+          {/* Date Range */}
+          <div className="bg-[#F05924] w-[20rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
+            <p className="text-sm font-semibold">Date Range</p>
             <input
-              key={index}
-              className="block w-[28rem] pr-4 pl-3 py-2 text-md font-normal shadow-xs text-black bg-transparent border border-black rounded-md placeholder-black/50 focus:outline-none leading-relaxed"
               type="text"
-              placeholder={`Search By ${col.name}`}
-              onChange={(e) => handleChange(col.field, e)} // Use col.field for correct field name
+              placeholder="Start Date"
+              className="block bg-white w-[6.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
+              value={startDate}
+              onFocus={(e) => (e.target.type = "date")}
+              onBlur={(e) => !startDate && (e.target.type = "text")}
+              onChange={(e) => {
+                setStartDate(e.target.value);
+              }}
             />
-          ))}
+            <input
+              type="text"
+              placeholder="End Date"
+              className="block bg-white w-[6.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
+              value={endDate}
+              onFocus={(e) => (e.target.type = "date")}
+              onBlur={(e) => !endDate && (e.target.type = "text")}
+              onChange={(e) => {
+                setEndDate(e.target.value);
+              }}
+            />
+          </div>
+          {/* Time Range */}
+          <div className="bg-[#F05924] w-[20rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
+            <p className="text-sm font-semibold">Time Range</p>
+            <input
+              type="text"
+              placeholder="Start Time"
+              className="block bg-white w-[6.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
+              value={startTime}
+              onFocus={(e) => (e.target.type = "time")}
+              onBlur={(e) => !startTime && (e.target.type = "text")}
+              onChange={(e) => {
+                setStartTIme(e.target.value);
+              }}
+            />
+            <input
+              type="text"
+              placeholder="End Time"
+              className="block bg-white w-[6.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
+              value={endTime}
+              onFocus={(e) => (e.target.type = "time")}
+              onBlur={(e) => !endTime && (e.target.type = "text")}
+              onChange={(e) => {
+                setEndTime(e.target.value);
+              }}
+            />
+          </div>
+          {/* Color filter */}
+          <div className="bg-[#F05924] w-[7rem] px-2 pt-0.25 pb-0.5 text-white flex justify-between items-center rounded-lg">
+            <select
+              name="color"
+              onChange={(e) => {}}
+              className="h-9 block w-[7rem] text-sm font-semibold text-white bg-transparent rounded-md placeholder-black/50 focus:outline-none leading-relaxed "
+            >
+              <option value="" className="text-black">
+                Color
+              </option>
+              <option value="1" className="text-red-600 font-bold">
+                Red
+              </option>
+              <option value="2" className="text-blue-600 font-bold">
+                Blue
+              </option>
+              <option value="3" className="text-green-600 font-bold">
+                Green
+              </option>
+              <option value="4" className="text-yellow-600 font-bold">
+                Yellow
+              </option>
+              <option value="5" className="text-orange-600 font-bold">
+                Orange
+              </option>
+              <option value="6" className="text-gray-600 font-bold">
+                Gray
+              </option>
+            </select>
+          </div>
+
+          {/* Codici Id filter */}
+          <div className="bg-[#F05924] w-[16rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
+            <p className="text-sm font-semibold">Codici ID</p>
+            <input
+              type="text"
+              placeholder="Start"
+              className="block bg-white w-[5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
+              value={startCodiciId}
+              onChange={(e) => {
+                setStartCodiciId(e.target.value);
+              }}
+            />
+            <input
+              type="text"
+              placeholder="End"
+              className="block bg-white w-[5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
+              value={endCodiciId}
+              onChange={(e) => {
+                setEndCodiciId(e.target.value);
+              }}
+            />
+          </div>
         </div>
-      </div> */}
+
+        <div className="flex gap-3">
+          {/* Buttons */}
+
+          <div className="bg-[#F05924] w-[17rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
+            <p className="text-sm font-semibold">Price Range</p>
+            <input
+              type="text"
+              placeholder="Start"
+              className="block bg-white w-[5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
+              value={minPrice}
+              onChange={(e) => {
+                setMinPrice(e.target.value);
+              }}
+            />
+            <input
+              type="text"
+              placeholder="End"
+              className="block bg-white w-[5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
+              value={maxPrice}
+              onChange={(e) => {
+                setMaxPrice(e.target.value);
+              }}
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-4 mt-10">
+          <button
+            onClick={filterDataFetch}
+            className="text-md rounded-md w-32 sm:w-28 pl-6 pr-6 pt-1 pb-1.5 bg-[#BF3606] font-semibold text-white"
+          >
+            Search
+          </button>
+          <button className="text-md rounded-md w-32 sm:w-28 pl-6 pr-6 pt-1 pb-1.5 bg-white font-semibold text-[#BF3606] border-2 border-[#BF3606]">
+            Clear
+          </button>
+        </div>
+      </div>
       <div className="w-[100] m-5 bg-white p-2 rounded-xl">
         <DataTable
           columns={columns}
@@ -487,20 +712,19 @@ const ViewReceipts = () => {
                     className="sm:w-[35rem] flex items-center justify-start p-2 pl-0 gap-2 text-md font-medium"
                   >
                     {key.charAt(0).toUpperCase() + key.slice(1)}:{" "}
-                    {value && value.path ? (
-                      // Handle the case where the value is an object with a valid path
-                      <a
-                        href={value.path}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs font-medium bg-blue-700 px-3 py-2 text-white rounded-md hover:bg-blue-900"
-                      >
-                        View
-                      </a>
-                    ) : typeof value === "string" ||
-                      typeof value === "number" ? (
-                      // Render normal value
-                      <h3 className="text-sm font-normal">{value}</h3>
+                    {typeof value === "string" ? (
+                      isFile(value) || value.startsWith("http") ? ( // Check if value is a file or a path
+                        <a
+                          href={value}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-medium bg-blue-700 px-3 py-2 text-white rounded-md hover:bg-blue-900"
+                        >
+                          View
+                        </a>
+                      ) : (
+                        <h3 className="text-sm font-normal">{value}</h3> // Render normal value
+                      )
                     ) : (
                       // Fallback for null/undefined value or unsupported type
                       <h3 className="text-sm font-normal text-gray-500">
@@ -536,51 +760,34 @@ const ViewReceipts = () => {
               currentReceipt.fields &&
               Object.entries(currentReceipt.fields).map(
                 ([key, value], index) => {
-                  // Check if the value is an object
-                  if (
-                    typeof value === "object" &&
-                    value !== null &&
-                    value.name &&
-                    value.type &&
-                    value.path
-                  ) {
-                    return (
-                      <div key={index} className="mb-4">
-                        <label
-                          htmlFor={key}
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          {key.charAt(0).toUpperCase() + key.slice(1)} (File)
-                        </label>
-                        <input
-                          id={key}
-                          name={key}
-                          type="file"
-                          onChange={handleChange}
-                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        />
-                      </div>
-                    );
-                  } else {
-                    return (
-                      <div key={index} className="mb-4">
-                        <label
-                          htmlFor={key}
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          {key.charAt(0).toUpperCase() + key.slice(1)}
-                        </label>
-                        <input
-                          id={key}
-                          name={key}
-                          type="text"
-                          value={currentReceipt.fields[key] || ""}
-                          onChange={handleChange}
-                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        />
-                      </div>
-                    );
-                  }
+                  const isPath =
+                    typeof value === "string" &&
+                    (value.startsWith("http://") ||
+                      value.startsWith("https://"));
+                  const isFilePath = isFile(value); // Check if it's a file path
+
+                  return (
+                    <div key={index} className="mb-4">
+                      {!(isPath || isFilePath) ? ( // Render input only if it's not a path or file
+                        <>
+                          <label
+                            htmlFor={key}
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            {key.charAt(0).toUpperCase() + key.slice(1)}
+                          </label>
+                          <input
+                            id={key}
+                            name={key}
+                            type="text"
+                            value={value || ""}
+                            onChange={handleChange}
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                          />
+                        </>
+                      ) : null}
+                    </div>
+                  );
                 }
               )}
             <div>

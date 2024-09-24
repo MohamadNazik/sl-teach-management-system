@@ -11,8 +11,6 @@ export const createRecieptController = async (req, res) => {
     const fields = req.fields;
     const files = req.files;
 
-    let savedFiles = {};
-
     const userDir = path.join(__dirname, "..", "uploads");
     // console.log("User Directory:", userDir);
 
@@ -40,19 +38,20 @@ export const createRecieptController = async (req, res) => {
 
         fs.renameSync(tempPath, newFilePath);
 
-        savedFiles[key] = {
-          name: file.name,
-          type: file.type,
-          path: newFilePath,
-        };
+        fields[key] = newFilePath;
       }
     }
 
+    if (fields.price) {
+      const price = parseFloat(fields.price);
+      if (isNaN(price)) {
+        return res.status(400).json({ message: "Invalid price format" });
+      }
+      fields.price = price; // Store the price as a float
+    }
+
     const newInputDetail = new inputDetails({
-      fields: {
-        ...fields,
-        ...savedFiles,
-      },
+      fields,
     });
 
     const savedDetail = await newInputDetail.save();

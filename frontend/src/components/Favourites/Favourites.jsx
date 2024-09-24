@@ -143,7 +143,7 @@ const Favourites = () => {
       }
     };
     // setIsRemoved(false);
-    console.log(isRemoved);
+    // console.log(isRemoved);
 
     fetchFavoriteReceipts();
   }, [currentUser, isRemoved, editModalIsOpen, deleteButtonClicked]);
@@ -201,20 +201,20 @@ const Favourites = () => {
   };
 
   const handleChange = (e) => {
-    const { name, type, value, files } = e.target;
+    const { name, value } = e.target; // Removed 'type' since it's not used
 
     setCurrentReceipt((prevReceipt) => ({
       ...prevReceipt,
       fields: {
         ...prevReceipt.fields,
-        [name]: type === "file" ? files[0] : value, // Handle file input
+        [name]: value, // Update the specific field
       },
     }));
   };
 
   const handleDeleteButton = async (receipt) => {
     const id = receipt._id;
-    console.log(receipt);
+    // console.log(receipt);
     sweetAlert("Are you sure you want to delete the receipt?").then(
       (result) => {
         if (result.isConfirmed) {
@@ -372,20 +372,19 @@ const Favourites = () => {
                     className="sm:w-[35rem] flex items-center justify-start p-2 pl-0 gap-2 text-md font-medium"
                   >
                     {key.charAt(0).toUpperCase() + key.slice(1)}:{" "}
-                    {value && value.path ? (
-                      // Handle the case where the value is an object with a valid path
-                      <a
-                        href={value.path}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs font-medium bg-blue-700 px-3 py-2 text-white rounded-md hover:bg-blue-900"
-                      >
-                        View
-                      </a>
-                    ) : typeof value === "string" ||
-                      typeof value === "number" ? (
-                      // Render normal value
-                      <h3 className="text-sm font-normal">{value}</h3>
+                    {typeof value === "string" ? (
+                      isFile(value) || value.startsWith("http") ? ( // Check if value is a file or a path
+                        <a
+                          href={value}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-medium bg-blue-700 px-3 py-2 text-white rounded-md hover:bg-blue-900"
+                        >
+                          View
+                        </a>
+                      ) : (
+                        <h3 className="text-sm font-normal">{value}</h3> // Render normal value
+                      )
                     ) : (
                       // Fallback for null/undefined value or unsupported type
                       <h3 className="text-sm font-normal text-gray-500">
@@ -421,51 +420,34 @@ const Favourites = () => {
               currentReceipt.fields &&
               Object.entries(currentReceipt.fields).map(
                 ([key, value], index) => {
-                  // Check if the value is an object
-                  if (
-                    typeof value === "object" &&
-                    value !== null &&
-                    value.name &&
-                    value.type &&
-                    value.path
-                  ) {
-                    return (
-                      <div key={index} className="mb-4">
-                        <label
-                          htmlFor={key}
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          {key.charAt(0).toUpperCase() + key.slice(1)} (File)
-                        </label>
-                        <input
-                          id={key}
-                          name={key}
-                          type="file"
-                          onChange={handleChange}
-                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        />
-                      </div>
-                    );
-                  } else {
-                    return (
-                      <div key={index} className="mb-4">
-                        <label
-                          htmlFor={key}
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          {key.charAt(0).toUpperCase() + key.slice(1)}
-                        </label>
-                        <input
-                          id={key}
-                          name={key}
-                          type="text"
-                          value={currentReceipt.fields[key] || ""}
-                          onChange={handleChange}
-                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        />
-                      </div>
-                    );
-                  }
+                  const isPath =
+                    typeof value === "string" &&
+                    (value.startsWith("http://") ||
+                      value.startsWith("https://"));
+                  const isFilePath = isFile(value); // Check if it's a file path
+
+                  return (
+                    <div key={index} className="mb-4">
+                      {!(isPath || isFilePath) ? ( // Render input only if it's not a path or file
+                        <>
+                          <label
+                            htmlFor={key}
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            {key.charAt(0).toUpperCase() + key.slice(1)}
+                          </label>
+                          <input
+                            id={key}
+                            name={key}
+                            type="text"
+                            value={value || ""}
+                            onChange={handleChange}
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                          />
+                        </>
+                      ) : null}
+                    </div>
+                  );
                 }
               )}
             <div>

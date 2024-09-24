@@ -1,16 +1,16 @@
 import inputDetails from "../../models/inputDetails.js";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+// import fs from "fs";
+// import path from "path";
+// import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 
 export const updateRecieptController = async (req, res) => {
   try {
     const { id } = req.params;
     const fields = req.fields || {};
-    const files = req.files || {};
+    // const files = req.files || {};
 
     const existingReciept = await inputDetails.findById(id);
     if (!existingReciept) {
@@ -31,35 +31,35 @@ export const updateRecieptController = async (req, res) => {
 
     const sanitizedFields = sanitizeFields(fields);
 
-    let updatedFiles = {};
+    // let updatedFiles = {};
 
-    const userDir = path.join(__dirname, "..", "uploads");
+    // const userDir = path.join(__dirname, "..", "uploads");
 
-    if (!fs.existsSync(userDir)) {
-      fs.mkdirSync(userDir, { recursive: true });
-    }
+    // if (!fs.existsSync(userDir)) {
+    //   fs.mkdirSync(userDir, { recursive: true });
+    // }
 
-    if (Object.keys(files).length > 0) {
-      for (const key in files) {
-        const file = files[key];
+    // if (Object.keys(files).length > 0) {
+    //   for (const key in files) {
+    //     const file = files[key];
 
-        if (!file || !file.path || !file.name) {
-          return res.status(400).json({ message: "Invalid file upload" });
-        }
+    //     if (!file || !file.path || !file.name) {
+    //       return res.status(400).json({ message: "Invalid file upload" });
+    //     }
 
-        // Move new file to the upload directory
-        const tempPath = file.path;
-        const newFilePath = path.join(userDir, file.name);
+    //     // Move new file to the upload directory
+    //     const tempPath = file.path;
+    //     const newFilePath = path.join(userDir, file.name);
 
-        fs.renameSync(tempPath, newFilePath);
+    //     fs.renameSync(tempPath, newFilePath);
 
-        updatedFiles[key] = {
-          name: file.name,
-          type: file.type,
-          path: newFilePath,
-        };
-      }
-    }
+    //     updatedFiles[key] = {
+    //       name: file.name,
+    //       type: file.type,
+    //       path: newFilePath,
+    //     };
+    //   }
+    // }
 
     const updatedReciept = await inputDetails.findByIdAndUpdate(
       id,
@@ -68,7 +68,7 @@ export const updateRecieptController = async (req, res) => {
           fields: {
             ...existingReciept.fields.toObject(),
             ...sanitizedFields,
-            ...updatedFiles,
+            // ...updatedFiles,
           },
         },
       },
