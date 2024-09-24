@@ -29,7 +29,7 @@ const customStylesForModal = {
 const customStyles = {
   cells: {
     style: {
-      fontSize: "0.75rem",
+      fontSize: "0.8rem",
     },
   },
   header: {
@@ -46,9 +46,19 @@ const customStyles = {
       },
       color: "white",
       fontWeight: "500",
-      fontSize: "0.8rem",
+      fontSize: "0.9rem",
     },
   },
+  // rows: {
+  //   style: (row) => ({
+  //     backgroundColor: row.fields.color || "transparent", // Use the color from the data or default to transparent
+  //     color: "white",
+  //     padding: "0.75rem",
+  //     "&:hover": {
+  //       backgroundColor: row.fields.color || "#F1F1F1", // Keep hover color as the original row color or default
+  //     },
+  //   }),
+  // },
 };
 
 const ViewReceipts = () => {
@@ -92,11 +102,58 @@ const ViewReceipts = () => {
 
           // Add custom columns for 'Actions'
           columns.push({
+            name: "Colors",
+            cell: (row) => (
+              <div className="block w-full">
+                <select
+                  id=""
+                  className="h-9 border border-gray-300 text-gray-600 text-sm rounded-lg block w-28 py-0.5 px-1 focus:outline-none"
+                >
+                  <option>color</option>
+                  <option value="" className="text-red-600 font-bold">
+                    Red
+                  </option>
+                  <option value="" className="text-blue-600 font-bold">
+                    Blue
+                  </option>
+                  <option value="" className="text-green-600 font-bold">
+                    Green
+                  </option>
+                  <option value="" className="text-yellow-600 font-bold">
+                    Yellow
+                  </option>
+                  <option value="" className="text-orange-600 font-bold">
+                    Orange
+                  </option>
+                  <option value="" className="text-gray-600 font-bold">
+                    Gray
+                  </option>
+                </select>
+              </div>
+            ),
+
+            width: "150px",
+          });
+
+          columns.push({
             name: "Actions",
             cell: (row) => (
               <>
+                <div>
+                  <img
+                    src={
+                      favoriteReceipts.includes(row._id)
+                        ? redFillHeart
+                        : lineHeart
+                    }
+                    alt=""
+                    className="w-5 cursor-pointer"
+                    onClick={() => toggleFavorite(row._id, currentUser)}
+                  />
+                </div>
+
                 <button
-                  className="text-md font-medium bg-blue-700 px-3 py-2 text-white rounded-md hover:bg-blue-900"
+                  className="ml-3 text-md font-medium bg-blue-700 px-3 py-2 text-white rounded-md hover:bg-blue-900"
                   onClick={() => openViewReceiptModal(row)}
                 >
                   View
@@ -113,19 +170,6 @@ const ViewReceipts = () => {
                 >
                   Delete
                 </button>
-
-                <div>
-                  <img
-                    src={
-                      favoriteReceipts.includes(row._id)
-                        ? redFillHeart
-                        : lineHeart
-                    }
-                    alt=""
-                    className="ml-3 w-5 cursor-pointer"
-                    onClick={() => toggleFavorite(row._id, currentUser)}
-                  />
-                </div>
               </>
             ),
 

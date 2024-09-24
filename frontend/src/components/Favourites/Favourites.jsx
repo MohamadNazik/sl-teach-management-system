@@ -97,8 +97,17 @@ const Favourites = () => {
               name: "Actions",
               cell: (row) => (
                 <>
+                  <div>
+                    <img
+                      src={redFillHeart}
+                      alt=""
+                      className="w-5 cursor-pointer"
+                      onClick={() => removeFavourites(row._id, currentUser)}
+                    />
+                  </div>
+
                   <button
-                    className="text-md font-medium bg-blue-700 px-3 py-2 text-white rounded-md hover:bg-blue-900"
+                    className="ml-3 text-md font-medium bg-blue-700 px-3 py-2 text-white rounded-md hover:bg-blue-900"
                     onClick={() => openViewReceiptModal(row)}
                   >
                     View
@@ -115,15 +124,6 @@ const Favourites = () => {
                   >
                     Delete
                   </button>
-
-                  <div>
-                    <img
-                      src={redFillHeart}
-                      alt=""
-                      className="ml-3 w-5 cursor-pointer"
-                      onClick={() => removeFavourites(row._id, currentUser)}
-                    />
-                  </div>
                 </>
               ),
               width: "250px",
