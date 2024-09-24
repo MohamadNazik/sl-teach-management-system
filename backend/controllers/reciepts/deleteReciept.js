@@ -1,3 +1,4 @@
+import Favourite from "../../models/favourite.js";
 import inputDetails from "../../models/inputDetails.js";
 
 export const deleteRecieptController = async (req, res) => {
@@ -11,7 +12,7 @@ export const deleteRecieptController = async (req, res) => {
         message: "No data found to delete",
       });
     }
-
+    await Favourite.deleteOne({ recieptId: id });
     await inputDetails.findByIdAndDelete(id);
 
     return res.status(200).send({
