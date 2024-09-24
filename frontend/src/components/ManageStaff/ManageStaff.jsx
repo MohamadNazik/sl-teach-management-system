@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import Modal from "react-modal";
 import Header from "../Header";
 import InputBox from "../InputBox";
 import DataTable from "react-data-table-component";
-import users from "../../assets/sample_data/users";
+import { toastAlert } from "../../utils/Alerts/toastAlert";
+import { sweetAlert } from "../../utils/Alerts/sweetAlert";
+// import users from "../../assets/sample_data/users";
 
 const customStylesForModal = {
   content: {
@@ -47,9 +48,6 @@ const customStyles = {
 };
 
 const ManageStaff = () => {
-  const [editModalIsOpen, setEditModalIsOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState({});
-
   const [resData, setResData] = useState([]);
   const [deleteButtonClicked, setDeleteButtonClicked] = useState(false);
   const [addButtonClicked, setAddButtonClicked] = useState(false);
@@ -57,75 +55,94 @@ const ManageStaff = () => {
   const [staffId, setStaffId] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [email, setEmail] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const response = await axios.get(
-          "http://localhost:30000/api/admin/get-all-staff"
-        );
-
-        // console.log(response);
-        if (response.data.success) {
-          setResData(response.data.users);
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
+      axios
+        .get("http://localhost:30000/api/admin/get-all-staff")
+        .then((response) => {
+          // console.log(response);
+          if (response.data.success) {
+            setResData(response.data.users);
+          }
+        })
+        .catch((error) => {
+          // console.error("Error fetching data:", error);
+          if (error.response) {
+            // Handle invalid credentials
+            toastAlert("error", error.response.data.message);
+          } else {
+            // Handle server or network error
+            toastAlert("error", "Server Error!");
+          }
+        });
     };
 
-    // setDeleteButtonClicked(false);
+    //setDeleteButtonClicked(false);
 
     fetchData();
   }, [deleteButtonClicked, addButtonClicked]);
 
   const handleDeleteButton = async (user) => {
     const id = user._id;
-    try {
-      const response = await axios.delete(
-        `http://localhost:30000/api/admin/delete-staff/${id}`
-      );
-      // console.log("Response:", response.data);
-      if (response.data.success) {
-        setDeleteButtonClicked((prev) => !prev);
-        // console.log(response.data.message);
+    sweetAlert(`Are you sure you want to\nDelete the "${user.name}"?`).then(
+      (result) => {
+        if (result.isConfirmed) {
+          axios
+            .delete(`http://localhost:30000/api/admin/delete-staff/${id}`)
+            .then((response) => {
+              // console.log("Response:", response.data);
+              if (response.data.success) {
+                setDeleteButtonClicked((prev) => !prev);
+                toastAlert("success", `"${user.name}" is deleted !`);
+                // console.log(response.data.message);
+              }
+            })
+            .catch((error) => {
+              // Handle error cases
+              if (error.response) {
+                // Handle error response from the server
+                toastAlert("error", error.response.data.message);
+              } else {
+                // Handle server or network error
+                toastAlert("error", "Server Error!");
+              }
+            });
+        } else if (result.isDenied) {
+        }
       }
-    } catch (error) {
-      console.error("Error submitting form", error);
-    }
+    );
   };
-
-  // function openEditModal(user) {
-  //   setCurrentUser(user);
-  //   setEditModalIsOpen(true);
-  // }
-
-  // function closeEditModal() {
-  //   setEditModalIsOpen(false);
-  //   setCurrentUser({});
-  // }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const response = await axios.post(
-        "http://localhost:30000/api/admin/create-staff",
-        {
-          name: name,
-          staffId: staffId,
-          password: password,
-          confirmPassword: confirmPassword,
+    axios
+      .post("http://localhost:30000/api/admin/create-staff", {
+        name: name,
+        email: email,
+        staffId: staffId,
+        password: password,
+        confirmPassword: confirmPassword,
+      })
+      .then((response) => {
+        // console.log(response);
+        if (response.data.success) {
+          toastAlert("success", `"${response.data.staff.name}" is added !`);
+          setAddButtonClicked((prev) => !prev);
+          document.querySelector("form").reset(); // Reset the form fields
         }
-      );
-
-      // console.log(response);
-      if (response.data.success) {
-        setAddButtonClicked((prev) => !prev);
-        document.querySelector("form").reset();
-      }
-    } catch (error) {
-      console.error("Error deleting field", error);
-    }
+      })
+      .catch((error) => {
+        // console.error("Error creating staff", error);
+        if (error.response) {
+          // Handle invalid credentials
+          toastAlert("error", error.response.data.message);
+        } else {
+          // Handle server or network error
+          toastAlert("error", "Server Error!");
+        }
+      });
   };
 
   const columns = [
@@ -139,17 +156,16 @@ const ManageStaff = () => {
       selector: (row) => row.name,
       sortable: true,
     },
+    {
+      name: "Email",
+      selector: (row) => row.email,
+      // sortable: true,
+    },
 
     {
       name: "Actions",
       cell: (row) => (
         <>
-          {/* <button
-            className="ml-3 text-md font-medium bg-green-700 px-3 py-2 text-white rounded-md hover:bg-green-900"
-            onClick={() => openEditModal(row)}
-          >
-            Edit
-          </button> */}
           <button
             className="ml-3 text-md font-medium bg-red-700 px-3 py-2 text-white rounded-md hover:bg-red-900"
             onClick={(e) => {
@@ -167,7 +183,7 @@ const ManageStaff = () => {
     <section>
       <Header page="Manage Staff" isDashboard={false} />
       <div className="w-[100] m-5 bg-white p-10 flex flex-col xl:flex-row items-start gap-8 xl:gap-40 rounded-xl">
-        <div className="flex flex-col gap-4 rounded-xl">
+        <div className="w-[20rem] sm:w-[30rem] lg:w-[45rem] flex flex-col gap-4 rounded-xl">
           <DataTable
             columns={columns}
             data={resData} // Using the imported dataset
@@ -188,6 +204,12 @@ const ManageStaff = () => {
               label="Name"
               requiredField={true}
               onChange={(e) => setName(e.target.value)}
+            />
+            <InputBox
+              type="text"
+              label="Email"
+              requiredField={true}
+              onChange={(e) => setEmail(e.target.value)}
             />
             <InputBox
               type="text"
@@ -225,65 +247,6 @@ const ManageStaff = () => {
             </div>
           </form>
         </div>
-
-        {/* Edit modal */}
-
-        {/* <Modal
-          isOpen={editModalIsOpen}
-          onRequestClose={closeEditModal}
-          style={customStylesForModal}
-          contentLabel="Edit Receipt"
-        >
-          <h2 className="text-xl font-bold text-start mb-4 text-[#BF3606]">
-            Edit Staff
-          </h2>
-          <div className="w-[20rem] sm:w-[40rem] h-[25rem] sm:h-[24rem] overflow-auto flex flex-col gap-3 items-start mb-4">
-            <form className="flex flex-col gap-2 w-[20rem] sm:w-[38rem]">
-              {Object.entries(currentUser).map(
-                ([key, value], index) =>
-                  key !== "role" &&
-                  key !== "_id" && ( // Skip if the key is "role"
-                    <div key={index} className="mb-4">
-                      <label
-                        htmlFor={key}
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        {key.charAt(0).toUpperCase() + key.slice(1)}
-                      </label>
-                      <input
-                        id={key}
-                        name={key}
-                        type="text"
-                        value={value}
-                        onChange={(e) => {
-                          setCurrentUser((prev) => ({
-                            ...prev,
-                            [key]: e.target.value,
-                          }));
-                        }}
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      />
-                    </div>
-                  )
-              )}
-              <div>
-                <button
-                  type="submit"
-                  className="w-20  text-md font-medium bg-green-700 px-3 py-2 text-white rounded-md hover:bg-green-900"
-                >
-                  Save
-                </button>
-
-                <button
-                  onClick={closeEditModal}
-                  className="w-20 ml-3 text-md font-medium bg-red-700 px-3 py-2 text-white rounded-md hover:bg-red-900"
-                >
-                  Close
-                </button>
-              </div>
-            </form>
-          </div>
-        </Modal> */}
       </div>
     </section>
   );

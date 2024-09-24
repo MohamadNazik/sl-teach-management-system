@@ -16,11 +16,20 @@ import StaffProtectiveRoutes from "./utils/StaffProtectiveRoutes.jsx";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ForgotPassword from "./components/ForgotPasswordPages/ForgotPassword/ForgotPassword.jsx";
+import VerifyOTP from "./components/ForgotPasswordPages/VerifyOTP/VerifyOTP.jsx";
+import ChangePassword from "./components/ChangePassword/ChangePassword.jsx";
+import ResetPassword from "./components/ForgotPasswordPages/ResetPassword/ResetPassword.jsx";
+import { ForgotPasswordContextProvider } from "./utils/context/ForgotPasswordContext.jsx";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <LoginPage />,
+  },
+  {
+    path: "/change-password",
+    element: <ChangePassword />,
   },
   {
     path: "/staff-dashboard",
@@ -65,6 +74,24 @@ const router = createBrowserRouter([
         <ManageStaff />
       </AdminProtectiveRoutes>
     ),
+  },
+  {
+    path: "/forgot-password",
+    element: (
+      <ForgotPasswordContextProvider>
+        <ForgotPassword />
+      </ForgotPasswordContextProvider>
+    ),
+    children: [
+      {
+        path: "verify-otp", // Resolves to /forgot-password/verify-otp
+        element: <VerifyOTP />,
+      },
+      {
+        path: "reset-password", // Resolves to /forgot-password/verify-otp
+        element: <ResetPassword />,
+      },
+    ],
   },
   {
     path: "*",

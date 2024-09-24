@@ -53,7 +53,7 @@ export const sendOTPVerificationEmail = async ({ _id, email }, res) => {
       staffId: _id,
       otp: hashedOTP,
       createdAt: Date.now(),
-      expiresAt: Date.now() + 300000,
+      expiresAt: Date.now() + 30000,
     });
 
     await newOTPVerification.save();

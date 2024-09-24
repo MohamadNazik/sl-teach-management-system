@@ -6,8 +6,8 @@ import { changePassword } from "../controllers/auth/changePassword.js";
 
 const router = express.Router();
 
-router.post("/change-staffid", requireSignIn, changeStaffIdController);
-router.post("/change-username", requireSignIn, changeUsernameController);
-router.put("/change-password/:id", requireSignIn, changePassword);
+router.post("/change-staffid", changeStaffIdController);
+router.post("/change-username", changeUsernameController);
+router.put("/change-password/:id", changePassword);
 
 export default router;

@@ -70,7 +70,7 @@ export const getFavouritesController = async (req, res) => {
     if (!favourites || favourites.length === 0) {
       return res.status(404).json({
         success: false,
-        message: "No favourites found for this user",
+        message: "No favourites found",
       });
     }
 
