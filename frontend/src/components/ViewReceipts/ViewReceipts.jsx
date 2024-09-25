@@ -76,6 +76,20 @@ const ViewReceipts = () => {
   const [favoriteReceipts, setFavoriteReceipts] = useState([]);
   const { currentUser } = useContext(AuthContext);
 
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [startTime, setStartTIme] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [month, setMonth] = useState();
+  const [minPrice, setMinPrice] = useState();
+  const [maxPrice, setMaxPrice] = useState();
+  const [startCodiciId, setStartCodiciId] = useState("");
+  const [endCodiciId, setEndCodiciId] = useState("");
+  const [banca, setBanca] = useState("");
+  const [benef, setBenef] = useState("");
+  const [ordinate, setOrdinate] = useState("");
+  const [causale, setCausale] = useState("");
+
   useEffect(() => {
     const fetchData = async () => {
       await axios
@@ -437,17 +451,8 @@ const ViewReceipts = () => {
     }
   };
 
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [startTime, setStartTIme] = useState("");
-  const [endTime, setEndTime] = useState("");
-  const [month, setMonth] = useState("");
-  const [minPrice, setMinPrice] = useState("");
-  const [maxPrice, setMaxPrice] = useState("");
-  const [startCodiciId, setStartCodiciId] = useState("");
-  const [endCodiciId, setEndCodiciId] = useState("");
-
-  const filterDataFetch = async () => {
+  const filterDataFetch = async (e) => {
+    e.preventDefault();
     await axios
       .post("http://localhost:30000/api/filter/get-filter", {
         month: month,
@@ -482,201 +487,257 @@ const ViewReceipts = () => {
 
       {/* Filters section */}
 
-      <div className="w-[100] m-5 bg-white py-7 px-5 rounded-xl flex flex-col gap-5 items-center">
-        <div className="flex gap-3">
-          <div className="bg-[#F05924] w-[7rem] px-2 pt-0.25 pb-0.5 text-white flex justify-between items-center rounded-lg">
-            <select
-              name="month"
-              onChange={(e) => {
-                setMonth(e.target.value);
-              }}
-              className="h-9 block w-[7rem] text-sm font-semibold text-white bg-transparent rounded-md placeholder-black/50 focus:outline-none leading-relaxed "
-            >
-              <option value="" className="text-black" disabled selected>
-                Month
-              </option>
-              <option value="1" className="text-black">
-                January
-              </option>
-              <option value="2" className="text-black">
-                February
-              </option>
-              <option value="3" className="text-black">
-                March
-              </option>
-              <option value="4" className="text-black">
-                April
-              </option>
-              <option value="5" className="text-black">
-                May
-              </option>
-              <option value="6" className="text-black">
-                June
-              </option>
-              <option value="7" className="text-black">
-                July
-              </option>
-              <option value="8" className="text-black">
-                August
-              </option>
-              <option value="9" className="text-black">
-                September
-              </option>
-              <option value="10" className="text-black">
-                October
-              </option>
-              <option value="11" className="text-black">
-                November
-              </option>
-              <option value="12" className="text-black">
-                December
-              </option>
-            </select>
-          </div>
-          {/* Date Range */}
-          <div className="bg-[#F05924] w-[20rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
-            <p className="text-sm font-semibold">Date Range</p>
-            <input
-              type="text"
-              placeholder="Start Date"
-              className="block bg-white w-[6.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
-              value={startDate}
-              onFocus={(e) => (e.target.type = "date")}
-              onBlur={(e) => !startDate && (e.target.type = "text")}
-              onChange={(e) => {
-                setStartDate(e.target.value);
-              }}
-            />
-            <input
-              type="text"
-              placeholder="End Date"
-              className="block bg-white w-[6.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
-              value={endDate}
-              onFocus={(e) => (e.target.type = "date")}
-              onBlur={(e) => !endDate && (e.target.type = "text")}
-              onChange={(e) => {
-                setEndDate(e.target.value);
-              }}
-            />
-          </div>
-          {/* Time Range */}
-          <div className="bg-[#F05924] w-[20rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
-            <p className="text-sm font-semibold">Time Range</p>
-            <input
-              type="text"
-              placeholder="Start Time"
-              className="block bg-white w-[6.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
-              value={startTime}
-              onFocus={(e) => (e.target.type = "time")}
-              onBlur={(e) => !startTime && (e.target.type = "text")}
-              onChange={(e) => {
-                setStartTIme(e.target.value);
-              }}
-            />
-            <input
-              type="text"
-              placeholder="End Time"
-              className="block bg-white w-[6.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
-              value={endTime}
-              onFocus={(e) => (e.target.type = "time")}
-              onBlur={(e) => !endTime && (e.target.type = "text")}
-              onChange={(e) => {
-                setEndTime(e.target.value);
-              }}
-            />
-          </div>
-          {/* Color filter */}
-          <div className="bg-[#F05924] w-[7rem] px-2 pt-0.25 pb-0.5 text-white flex justify-between items-center rounded-lg">
-            <select
-              name="color"
-              onChange={(e) => {}}
-              className="h-9 block w-[7rem] text-sm font-semibold text-white bg-transparent rounded-md placeholder-black/50 focus:outline-none leading-relaxed "
-            >
-              <option value="" className="text-black">
-                Color
-              </option>
-              <option value="1" className="text-red-600 font-bold">
-                Red
-              </option>
-              <option value="2" className="text-blue-600 font-bold">
-                Blue
-              </option>
-              <option value="3" className="text-green-600 font-bold">
-                Green
-              </option>
-              <option value="4" className="text-yellow-600 font-bold">
-                Yellow
-              </option>
-              <option value="5" className="text-orange-600 font-bold">
-                Orange
-              </option>
-              <option value="6" className="text-gray-600 font-bold">
-                Gray
-              </option>
-            </select>
+      <div className="w-[100] m-5 bg-white py-7 px-5 rounded-xl gap-5 items-center">
+        <form
+          onSubmit={filterDataFetch}
+          className="flex flex-col gap-4 items-center"
+        >
+          <div className="flex gap-3">
+            <div className="bg-[#F05924] w-[7rem] px-2 pt-0.25 pb-0.5 text-white flex justify-between items-center rounded-lg">
+              <select
+                name="month"
+                onChange={(e) => {
+                  setMonth(e.target.value);
+                }}
+                className="h-9 block w-[7rem] text-sm font-semibold text-white bg-transparent rounded-md placeholder-black/50 focus:outline-none leading-relaxed "
+              >
+                <option value="" className="text-black" disabled selected>
+                  Month
+                </option>
+                <option value="1" className="text-black">
+                  January
+                </option>
+                <option value="2" className="text-black">
+                  February
+                </option>
+                <option value="3" className="text-black">
+                  March
+                </option>
+                <option value="4" className="text-black">
+                  April
+                </option>
+                <option value="5" className="text-black">
+                  May
+                </option>
+                <option value="6" className="text-black">
+                  June
+                </option>
+                <option value="7" className="text-black">
+                  July
+                </option>
+                <option value="8" className="text-black">
+                  August
+                </option>
+                <option value="9" className="text-black">
+                  September
+                </option>
+                <option value="10" className="text-black">
+                  October
+                </option>
+                <option value="11" className="text-black">
+                  November
+                </option>
+                <option value="12" className="text-black">
+                  December
+                </option>
+              </select>
+            </div>
+            {/* Date Range */}
+            <div className="bg-[#F05924] w-[20rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
+              <p className="text-sm font-semibold">Date Range</p>
+              <input
+                type="text"
+                placeholder="Start Date"
+                className="block bg-white w-[6.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
+                value={startDate}
+                onFocus={(e) => (e.target.type = "date")}
+                onBlur={(e) => !startDate && (e.target.type = "text")}
+                onChange={(e) => {
+                  setStartDate(e.target.value);
+                }}
+              />
+              <input
+                type="text"
+                placeholder="End Date"
+                className="block bg-white w-[6.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
+                value={endDate}
+                onFocus={(e) => (e.target.type = "date")}
+                onBlur={(e) => !endDate && (e.target.type = "text")}
+                onChange={(e) => {
+                  setEndDate(e.target.value);
+                }}
+              />
+            </div>
+            {/* Time Range */}
+            <div className="bg-[#F05924] w-[20rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
+              <p className="text-sm font-semibold">Time Range</p>
+              <input
+                type="text"
+                placeholder="Start Time"
+                className="block bg-white w-[6.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
+                value={startTime}
+                onFocus={(e) => (e.target.type = "time")}
+                onBlur={(e) => !startTime && (e.target.type = "text")}
+                onChange={(e) => {
+                  setStartTIme(e.target.value);
+                }}
+              />
+              <input
+                type="text"
+                placeholder="End Time"
+                className="block bg-white w-[6.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
+                value={endTime}
+                onFocus={(e) => (e.target.type = "time")}
+                onBlur={(e) => !endTime && (e.target.type = "text")}
+                onChange={(e) => {
+                  setEndTime(e.target.value);
+                }}
+              />
+            </div>
+            {/* Color filter */}
+            <div className="bg-[#F05924] w-[7rem] px-2 pt-0.25 pb-0.5 text-white flex justify-between items-center rounded-lg">
+              <select
+                name="color"
+                onChange={(e) => {}}
+                className="h-9 block w-[7rem] text-sm font-semibold text-white bg-transparent rounded-md placeholder-black/50 focus:outline-none leading-relaxed "
+              >
+                <option value="" className="text-black">
+                  Color
+                </option>
+                <option value="1" className="text-red-600 font-bold">
+                  Red
+                </option>
+                <option value="2" className="text-blue-600 font-bold">
+                  Blue
+                </option>
+                <option value="3" className="text-green-600 font-bold">
+                  Green
+                </option>
+                <option value="4" className="text-yellow-600 font-bold">
+                  Yellow
+                </option>
+                <option value="5" className="text-orange-600 font-bold">
+                  Orange
+                </option>
+                <option value="6" className="text-gray-600 font-bold">
+                  Gray
+                </option>
+              </select>
+            </div>
+
+            {/* Codici Id filter */}
+            <div className="bg-[#F05924] w-[16rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
+              <p className="text-sm font-semibold">Codici ID</p>
+              <input
+                type="text"
+                placeholder="Start"
+                className="block bg-white w-[5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
+                value={startCodiciId}
+                onChange={(e) => {
+                  setStartCodiciId(e.target.value);
+                }}
+              />
+              <input
+                type="text"
+                placeholder="End"
+                className="block bg-white w-[5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
+                value={endCodiciId}
+                onChange={(e) => {
+                  setEndCodiciId(e.target.value);
+                }}
+              />
+            </div>
           </div>
 
-          {/* Codici Id filter */}
-          <div className="bg-[#F05924] w-[16rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
-            <p className="text-sm font-semibold">Codici ID</p>
-            <input
-              type="text"
-              placeholder="Start"
-              className="block bg-white w-[5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
-              value={startCodiciId}
-              onChange={(e) => {
-                setStartCodiciId(e.target.value);
-              }}
-            />
-            <input
-              type="text"
-              placeholder="End"
-              className="block bg-white w-[5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
-              value={endCodiciId}
-              onChange={(e) => {
-                setEndCodiciId(e.target.value);
-              }}
-            />
-          </div>
-        </div>
+          <div className="flex gap-3">
+            {/* Price filter */}
 
-        <div className="flex gap-3">
+            <div className="bg-[#F05924] w-[17rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
+              <p className="text-sm font-semibold">Price Range</p>
+              <input
+                type="text"
+                placeholder="Start"
+                className="block bg-white w-[5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
+                onChange={(e) => {
+                  setMinPrice(parseFloat(e.target.value));
+                }}
+              />
+              <input
+                type="text"
+                placeholder="End"
+                className="block bg-white w-[5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
+                onChange={(e) => {
+                  setMaxPrice(parseFloat(e.target.value));
+                }}
+              />
+            </div>
+            <div className="bg-[#F05924] w-[13rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
+              <p className="text-sm font-semibold">Benef</p>
+              <input
+                type="text"
+                value={benef}
+                placeholder="Benef"
+                className="block bg-white w-[8.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
+                onChange={(e) => {
+                  setBenef(e.target.value);
+                }}
+              />
+            </div>
+            <div className="bg-[#F05924] w-[13rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
+              <p className="text-sm font-semibold">Banca</p>
+              <input
+                type="text"
+                placeholder="Banca"
+                value={banca}
+                className="block bg-white w-[8.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
+                onChange={(e) => {
+                  setBanca(e.target.value);
+                }}
+              />
+            </div>
+            <div className="bg-[#F05924] w-[14rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
+              <p className="text-sm font-semibold">Ordinate</p>
+              <input
+                type="text"
+                placeholder="Ordinate"
+                value={ordinate}
+                className="block bg-white w-[8.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
+                onChange={(e) => {
+                  setOrdinate(e.target.value);
+                }}
+              />
+            </div>
+            <div className="bg-[#F05924] w-[14rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
+              <p className="text-sm font-semibold">Causale</p>
+              <input
+                type="text"
+                placeholder="Causale"
+                value={causale}
+                className="block bg-white w-[8.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
+                onChange={(e) => {
+                  setCausale(e.target.value);
+                }}
+              />
+            </div>
+          </div>
+
           {/* Buttons */}
 
-          <div className="bg-[#F05924] w-[17rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
-            <p className="text-sm font-semibold">Price Range</p>
-            <input
-              type="text"
-              placeholder="Start"
-              className="block bg-white w-[5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
-              value={minPrice}
-              onChange={(e) => {
-                setMinPrice(e.target.value);
-              }}
-            />
-            <input
-              type="text"
-              placeholder="End"
-              className="block bg-white w-[5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
-              value={maxPrice}
-              onChange={(e) => {
-                setMaxPrice(e.target.value);
-              }}
-            />
+          <div className="flex gap-4 mt-10">
+            <button
+              type="submit"
+              className="text-md rounded-md w-32 sm:w-28 pl-6 pr-6 pt-1 pb-1.5 bg-[#BF3606] font-semibold text-white"
+            >
+              Search
+            </button>
+            <button
+              className="text-md rounded-md w-32 sm:w-28 pl-6 pr-6 pt-1 pb-1.5 bg-white font-semibold text-[#BF3606] border-2 border-[#BF3606]"
+              onClick={() => window.location.reload()}
+            >
+              Clear
+            </button>
           </div>
-        </div>
-
-        <div className="flex gap-4 mt-10">
-          <button
-            onClick={filterDataFetch}
-            className="text-md rounded-md w-32 sm:w-28 pl-6 pr-6 pt-1 pb-1.5 bg-[#BF3606] font-semibold text-white"
-          >
-            Search
-          </button>
-          <button className="text-md rounded-md w-32 sm:w-28 pl-6 pr-6 pt-1 pb-1.5 bg-white font-semibold text-[#BF3606] border-2 border-[#BF3606]">
-            Clear
-          </button>
-        </div>
+        </form>
       </div>
       <div className="w-[100] m-5 bg-white p-2 rounded-xl">
         <DataTable

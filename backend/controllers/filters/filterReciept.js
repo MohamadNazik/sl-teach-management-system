@@ -49,7 +49,7 @@ export const getFilters = async (req, res) => {
 
     if (minPrice && maxPrice) {
       filters.push({
-        "fields.Euro(price)": {
+        "fields.price": {
           $gte: minPrice,
           $lte: maxPrice,
         },
