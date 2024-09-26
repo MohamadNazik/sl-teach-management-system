@@ -6,6 +6,8 @@ import InputBox from "../InputBox";
 import { toastAlert } from "../../utils/Alerts/toastAlert";
 // import inputFields from "../../assets/sample_data/InputFields";
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
 const AddReceipt = () => {
   const [inputFields, setInputFields] = useState([]);
   const [formData, setFormData] = useState(new FormData());
@@ -13,7 +15,7 @@ const AddReceipt = () => {
   useEffect(() => {
     const fetchFields = async () => {
       axios
-        .get("http://localhost:30000/api/receipt/get-fields")
+        .get(`${backendUrl}/receipt/get-fields`)
         .then((response) => {
           // console.log(response);
           if (response.data.success) {
@@ -37,7 +39,7 @@ const AddReceipt = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     axios
-      .post("http://localhost:30000/api/receipt/create-receipt", formData, {
+      .post(`${backendUrl}/receipt/create-receipt`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -71,12 +73,12 @@ const AddReceipt = () => {
   };
 
   return (
-    <section>
+    <section className="flex flex-col items-center">
       <Header page="Add Receipt" isDashboard={false} role={0} />
-      <div className="w-[100] m-5 bg-white p-10 rounded-xl">
+      <div className="w-full sm:w-[100] m-5 mt-12 sm:mt-4 bg-white p-10 rounded-xl">
         <form
           onSubmit={handleSubmit}
-          className="flex flex-col items-start gap-5"
+          className="flex flex-col items-center md:items-start gap-5"
         >
           {inputFields.map((field, index) =>
             field.fieldType === "file" ? (

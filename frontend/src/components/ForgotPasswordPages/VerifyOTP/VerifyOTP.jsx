@@ -4,6 +4,8 @@ import { ForgotPasswordContext } from "../../../utils/context/ForgotPasswordCont
 import axios from "axios";
 import { toastAlert } from "../../../utils/Alerts/toastAlert";
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
 const VerifyOTP = () => {
   const [otp, setOtp] = useState();
   const { user } = useContext(ForgotPasswordContext);
@@ -35,7 +37,7 @@ const VerifyOTP = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     await axios
-      .post("http://localhost:30000/api/admin/verifyOTP", {
+      .post(`${backendUrl}/admin/verifyOTP`, {
         staffId: user.staffId,
         otp: otp,
       })

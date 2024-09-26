@@ -11,6 +11,8 @@ import {
 import { toastAlert } from "../../../utils/Alerts/toastAlert";
 import { ForgotPasswordContext } from "../../../utils/context/ForgotPasswordContext";
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
 const ForgotPassword = () => {
   const location = useLocation();
 
@@ -22,7 +24,7 @@ const ForgotPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     await axios
-      .post("http://localhost:30000/api/admin/forgot-password", {
+      .post(`${backendUrl}/admin/forgot-password`, {
         email: email,
       })
       .then((response) => {

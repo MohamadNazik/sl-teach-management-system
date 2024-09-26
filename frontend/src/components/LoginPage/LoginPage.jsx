@@ -1,4 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
+import { MdRemoveRedEye } from "react-icons/md";
+import { FaEyeSlash } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AuthContext } from "../../utils/context/AuthContext";
@@ -6,9 +8,12 @@ import { AuthContext } from "../../utils/context/AuthContext";
 import "react-toastify/dist/ReactToastify.css";
 import { toastAlert } from "../../utils/Alerts/toastAlert";
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
 const LoginPage = () => {
   const [staffId, setStaffId] = useState("");
   const [password, setPassword] = useState("");
+  const [isHide, setIsHide] = useState(true);
   const { currentUser, login } = useContext(AuthContext);
 
   const navigate = useNavigate();
@@ -32,7 +37,7 @@ const LoginPage = () => {
 
     if (!currentUser) {
       axios
-        .post("http://localhost:30000/api/admin/admin-login", {
+        .post(`${backendUrl}/admin/admin-login`, {
           staffId,
           password,
         })
@@ -152,13 +157,21 @@ const LoginPage = () => {
               </svg>
             </div>
             <input
-              type="text"
+              type={isHide ? "password" : "text"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="block w-full max-w-xs pr-4 pl-12 py-2 text-md font-normal shadow-xs text-white bg-transparent border border-white rounded-md placeholder-white/50 focus:outline-none leading-relaxed tracking-wider"
               placeholder="PASSWORD"
               required
             />
+            <div
+              className="text-white text-xl absolute right-4 top-3 cursor-pointer"
+              onClick={() => {
+                setIsHide((prev) => !prev);
+              }}
+            >
+              {isHide ? <FaEyeSlash /> : <MdRemoveRedEye />}
+            </div>
           </div>
 
           <button

@@ -20,6 +20,14 @@ export const updateRecieptController = async (req, res) => {
       });
     }
 
+    if (fields.price) {
+      const price = parseFloat(fields.price);
+      if (isNaN(price)) {
+        return res.status(400).json({ message: "Invalid price format" });
+      }
+      fields.price = price; // Store the price as a float
+    }
+
     const sanitizeFields = (data) => {
       return Object.keys(data).reduce((acc, key) => {
         if (!key.startsWith("$")) {

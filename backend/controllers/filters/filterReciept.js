@@ -1,4 +1,4 @@
-import inputDetails from "../../models/inputDetails.js"; // Your model
+import inputDetails from "../../models/inputDetails.js";
 
 export const getFilters = async (req, res) => {
   try {
@@ -10,8 +10,12 @@ export const getFilters = async (req, res) => {
       endDate,
       startTime,
       endTime,
-      startCodiciId,
-      endCodiciId,
+      codiciId,
+      banca,
+      benef,
+      ordinate,
+      causale,
+      color,
     } = req.body;
 
     let filters = [];
@@ -38,15 +42,36 @@ export const getFilters = async (req, res) => {
         },
       });
     }
-    if (startCodiciId && endCodiciId) {
+    if (codiciId) {
       filters.push({
-        "fields.Codici ID": {
-          $gte: startCodiciId,
-          $lte: endCodiciId,
-        },
+        "fields.Codici ID": codiciId,
       });
     }
-
+    if (color) {
+      filters.push({
+        "fields.color": color,
+      });
+    }
+    if (banca) {
+      filters.push({
+        "fields.Banca": banca,
+      });
+    }
+    if (benef) {
+      filters.push({
+        "fields.Benef": benef,
+      });
+    }
+    if (ordinate) {
+      filters.push({
+        "fields.Ordinate": ordinate,
+      });
+    }
+    if (causale) {
+      filters.push({
+        "fields.Causale": causale,
+      });
+    }
     if (minPrice && maxPrice) {
       filters.push({
         "fields.price": {
@@ -56,14 +81,7 @@ export const getFilters = async (req, res) => {
       });
     }
 
-    if (filters.length === 0) {
-      return res.status(404).send({
-        success: false,
-        message: "No filters provided",
-      });
-    }
-
-    const query = filters.length > 0 ? { $and: filters } : {};
+    const query = { $and: filters };
 
     const receipts = await inputDetails.find(query);
     console.log(receipts);
@@ -71,7 +89,7 @@ export const getFilters = async (req, res) => {
     if (receipts.length === 0) {
       return res.status(404).send({
         success: false,
-        message: "No receipts found",
+        message: "No receipts found.",
       });
     }
 

@@ -1,8 +1,12 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { MdRemoveRedEye } from "react-icons/md";
+import { FaEyeSlash } from "react-icons/fa";
 import axios from "axios";
 import { ForgotPasswordContext } from "../../../utils/context/ForgotPasswordContext";
 import { toastAlert } from "../../../utils/Alerts/toastAlert";
+
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const ResetPassword = () => {
   const [newPassword, setNewPassword] = useState("");
@@ -10,6 +14,9 @@ const ResetPassword = () => {
 
   const { user } = useContext(ForgotPasswordContext);
   const [isAuth, setIsAuth] = useState(false);
+
+  const [isHide, setIsHide] = useState(true);
+  const [isNewHide, setINewsHide] = useState(true);
 
   const navigate = useNavigate();
 
@@ -37,7 +44,7 @@ const ResetPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     await axios
-      .post("http://localhost:30000/api/admin/reset-password", {
+      .post(`${backendUrl}/admin/reset-password`, {
         staffId: user.staffId,
         newPassword: newPassword,
         confirmPassword: confirmNewPassword,
@@ -70,10 +77,10 @@ const ResetPassword = () => {
           className="w-[30rem] flex flex-col items-center"
         >
           <div className="mt-10 w-[20rem] flex flex-col gap-3">
-            <div>
+            <div className="relative">
               <label>New Password: </label>
               <input
-                type="text"
+                type={isNewHide ? "password" : "text"}
                 name="new"
                 onChange={(e) => {
                   setNewPassword(e.target.value);
@@ -82,11 +89,19 @@ const ResetPassword = () => {
                 placeholder=""
                 required
               />
+              <div
+                className="text-black/75 text-xl absolute right-4 top-9 cursor-pointer"
+                onClick={() => {
+                  setINewsHide((prev) => !prev);
+                }}
+              >
+                {isNewHide ? <FaEyeSlash /> : <MdRemoveRedEye />}
+              </div>
             </div>
-            <div>
+            <div className="relative">
               <label>Confirm New Password: </label>
               <input
-                type="text"
+                type={isHide ? "password" : "text"}
                 name="confirm"
                 onChange={(e) => {
                   setConfirmNewPassword(e.target.value);
@@ -95,6 +110,14 @@ const ResetPassword = () => {
                 placeholder=""
                 required
               />
+              <div
+                className="text-black/75 text-xl absolute right-4 top-9 cursor-pointer"
+                onClick={() => {
+                  setIsHide((prev) => !prev);
+                }}
+              >
+                {isHide ? <FaEyeSlash /> : <MdRemoveRedEye />}
+              </div>
             </div>
           </div>
 

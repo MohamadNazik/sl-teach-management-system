@@ -1,13 +1,21 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { MdRemoveRedEye } from "react-icons/md";
+import { FaEyeSlash } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AuthContext } from "../../utils/context/AuthContext";
 import { toastAlert } from "../../utils/Alerts/toastAlert";
+
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const ChangePassword = () => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
+
+  const [isOldHide, setIsOldHide] = useState(true);
+  const [isNewHide, setIsNewHide] = useState(true);
+  const [isConfirmHide, setIsConfirmHide] = useState(true);
 
   const { currentUser, logout } = useContext(AuthContext);
 
@@ -17,7 +25,7 @@ const ChangePassword = () => {
     if (currentUser === null) {
       navigate("/", { replace: true });
     }
-  }, [currentUser, navigate]);
+  }, [currentUser]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,7 +33,7 @@ const ChangePassword = () => {
     const id = currentUser.id;
 
     await axios
-      .put(`http://localhost:30000/api/auth/change-password/${id}`, {
+      .put(`${backendUrl}/auth/change-password/${id}`, {
         oldPassword: oldPassword,
         newPassword: newPassword,
         confirmPassword: confirmNewPassword,
@@ -60,10 +68,10 @@ const ChangePassword = () => {
           className="w-[30rem] flex flex-col items-center"
         >
           <div className="mt-10 w-[20rem] flex flex-col gap-3">
-            <div>
+            <div className="relative">
               <label> Old Password: </label>
               <input
-                type="text"
+                type={isOldHide ? "password" : "text"}
                 name="old"
                 onChange={(e) => {
                   setOldPassword(e.target.value);
@@ -72,11 +80,19 @@ const ChangePassword = () => {
                 placeholder=""
                 required
               />
+              <div
+                className="text-black/75 text-xl absolute right-4 top-9 cursor-pointer"
+                onClick={() => {
+                  setIsOldHide((prev) => !prev);
+                }}
+              >
+                {isOldHide ? <FaEyeSlash /> : <MdRemoveRedEye />}
+              </div>
             </div>
-            <div>
+            <div className="relative">
               <label> New Password: </label>
               <input
-                type="text"
+                type={isNewHide ? "password" : "text"}
                 name="new"
                 onChange={(e) => {
                   setNewPassword(e.target.value);
@@ -85,11 +101,19 @@ const ChangePassword = () => {
                 placeholder=""
                 required
               />
+              <div
+                className="text-black/75 text-xl absolute right-4 top-9 cursor-pointer"
+                onClick={() => {
+                  setIsNewHide((prev) => !prev);
+                }}
+              >
+                {isNewHide ? <FaEyeSlash /> : <MdRemoveRedEye />}
+              </div>
             </div>
-            <div>
+            <div className="relative">
               <label> Confirm New Password: </label>
               <input
-                type="text"
+                type={isConfirmHide ? "password" : "text"}
                 name="confirm"
                 onChange={(e) => {
                   setConfirmNewPassword(e.target.value);
@@ -98,6 +122,14 @@ const ChangePassword = () => {
                 placeholder=""
                 required
               />
+              <div
+                className="text-black/75 text-xl absolute right-4 top-9 cursor-pointer"
+                onClick={() => {
+                  setIsConfirmHide((prev) => !prev);
+                }}
+              >
+                {isConfirmHide ? <FaEyeSlash /> : <MdRemoveRedEye />}
+              </div>
             </div>
           </div>
 

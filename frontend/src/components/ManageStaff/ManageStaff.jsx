@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { MdRemoveRedEye } from "react-icons/md";
+import { FaEyeSlash } from "react-icons/fa";
 import axios from "axios";
 import Header from "../Header";
 import InputBox from "../InputBox";
@@ -7,20 +9,7 @@ import { toastAlert } from "../../utils/Alerts/toastAlert";
 import { sweetAlert } from "../../utils/Alerts/sweetAlert";
 // import users from "../../assets/sample_data/users";
 
-const customStylesForModal = {
-  content: {
-    top: "50%",
-    left: "50%",
-    right: "auto",
-    bottom: "auto",
-    marginRight: "-50%",
-    transform: "translate(-50%, -50%)",
-    backgroundColor: "white", // Modal background color
-  },
-  overlay: {
-    backgroundColor: "rgba(0, 0, 0, 0.75)", // Backdrop color
-  },
-};
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const customStyles = {
   cells: {
@@ -57,10 +46,13 @@ const ManageStaff = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [email, setEmail] = useState("");
 
+  const [isPassHide, setIsPassHide] = useState(true);
+  const [isConfirmHide, setIsConfirmHide] = useState(true);
+
   useEffect(() => {
     const fetchData = async () => {
       axios
-        .get("http://localhost:30000/api/admin/get-all-staff")
+        .get(`${backendUrl}/admin/get-all-staff`)
         .then((response) => {
           // console.log(response);
           if (response.data.success) {
@@ -90,7 +82,7 @@ const ManageStaff = () => {
       (result) => {
         if (result.isConfirmed) {
           axios
-            .delete(`http://localhost:30000/api/admin/delete-staff/${id}`)
+            .delete(`${backendUrl}/admin/delete-staff/${id}`)
             .then((response) => {
               // console.log("Response:", response.data);
               if (response.data.success) {
@@ -118,7 +110,7 @@ const ManageStaff = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     axios
-      .post("http://localhost:30000/api/admin/create-staff", {
+      .post(`${backendUrl}/admin/create-staff`, {
         name: name,
         email: email,
         staffId: staffId,
@@ -217,18 +209,39 @@ const ManageStaff = () => {
               requiredField={true}
               onChange={(e) => setStaffId(e.target.value)}
             />
-            <InputBox
-              type="text"
-              label="Password"
-              requiredField={true}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <InputBox
-              type="text"
-              label="Confirm Password"
-              requiredField={true}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
+            <div className="relative">
+              <InputBox
+                type={isPassHide ? "password" : "text"}
+                label="Password"
+                requiredField={true}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <div
+                className="text-black/75 text-xl absolute right-4 top-11 cursor-pointer"
+                onClick={() => {
+                  setIsPassHide((prev) => !prev);
+                }}
+              >
+                {isPassHide ? <FaEyeSlash /> : <MdRemoveRedEye />}
+              </div>
+            </div>
+
+            <div className="relative">
+              <InputBox
+                type={isConfirmHide ? "password" : "text"}
+                label="Confirm Password"
+                requiredField={true}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+              <div
+                className="text-black/75 text-xl absolute right-4 top-11 cursor-pointer"
+                onClick={() => {
+                  setIsConfirmHide((prev) => !prev);
+                }}
+              >
+                {isConfirmHide ? <FaEyeSlash /> : <MdRemoveRedEye />}
+              </div>
+            </div>
 
             <div className="flex gap-5">
               <button

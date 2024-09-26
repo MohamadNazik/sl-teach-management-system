@@ -9,6 +9,8 @@ import redFillHeart from "../../assets/icons/redfillheart.svg";
 import { toastAlert } from "../../utils/Alerts/toastAlert";
 import { sweetAlert } from "../../utils/Alerts/sweetAlert";
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
 const customStylesForModal = {
   content: {
     top: "50%",
@@ -60,37 +62,115 @@ const Favourites = () => {
 
   const [isRemoved, setIsRemoved] = useState(false);
   const { currentUser } = useContext(AuthContext);
+  const [isColorChanged, setIsColorChanged] = useState(false);
 
   useEffect(() => {
     const fetchFavoriteReceipts = async () => {
       if (currentUser) {
         await axios
-          .get(
-            `http://localhost:30000/api/receipt/get-favourite/${currentUser.id}`
-          )
+          .get(`${backendUrl}/receipt/get-favourite/${currentUser.id}`)
           .then((response) => {
             // console.log(response.data.data);
             setRecords(response.data.data);
 
-            const columns = Object.keys(response.data.data[0].fields || {}).map(
-              (key) => ({
-                name: key.charAt(0).toUpperCase() + key.slice(1), // Capitalize the first letter
+            const columns = Object.keys(response.data.data[0].fields || {})
+              .filter((key) => key !== "Upload Image" && key !== "color") // Exclude specific keys
+              .map((key) => ({
+                name:
+                  key === "price"
+                    ? "Euro(price)"
+                    : key.charAt(0).toUpperCase() + key.slice(1), // Capitalize the first letter
                 selector: (row) => {
                   const value = row.fields[key];
-                  // Handle cases where the value is an object (like for "Upload Image")
-                  if (
-                    typeof value === "object" &&
-                    value !== null &&
-                    value.path
-                  ) {
-                    return <p>{value.name}</p>;
-                  }
+
                   return value;
                 },
                 sortable: true,
                 field: key,
-              })
-            );
+              }));
+
+            // Add custom columns for 'Label Color'
+            columns.push({
+              name: "Label Color",
+              cell: (row) => (
+                <div
+                  className={`block w-full p-3 ${
+                    row.fields.color === "red"
+                      ? "bg-red-500"
+                      : row.fields.color === "blue"
+                      ? "bg-blue-500"
+                      : row.fields.color === "green"
+                      ? "bg-green-500"
+                      : row.fields.color === "yellow"
+                      ? "bg-yellow-500"
+                      : row.fields.color === "orange"
+                      ? "bg-orange-500"
+                      : row.fields.color === "gray"
+                      ? "bg-gray-500"
+                      : "bg-transparent"
+                  }`}
+                >
+                  <select
+                    id=""
+                    onChange={(e) => {
+                      handleRowColorChange(e, row);
+                    }}
+                    className="h-7 border border-gray-300 text-gray-600 text-sm rounded-lg block w-28 py-0.5 px-1 focus:outline-none"
+                  >
+                    <option
+                      value=""
+                      selected={row.fields.color === "" ? true : false}
+                    >
+                      No Color
+                    </option>
+                    <option
+                      value="red"
+                      className="text-red-600 font-bold"
+                      selected={row.fields.color === "red" ? true : false}
+                    >
+                      Red
+                    </option>
+                    <option
+                      value="blue"
+                      className="text-blue-600 font-bold"
+                      selected={row.fields.color === "blue" ? true : false}
+                    >
+                      Blue
+                    </option>
+                    <option
+                      value="green"
+                      className="text-green-600 font-bold"
+                      selected={row.fields.color === "green" ? true : false}
+                    >
+                      Green
+                    </option>
+                    <option
+                      value="yellow"
+                      className="text-yellow-600 font-bold"
+                      selected={row.fields.color === "yellow" ? true : false}
+                    >
+                      Yellow
+                    </option>
+                    <option
+                      value="orange"
+                      className="text-orange-600 font-bold"
+                      selected={row.fields.color === "orange" ? true : false}
+                    >
+                      Orange
+                    </option>
+                    <option
+                      value="gray"
+                      className="text-gray-600 font-bold"
+                      selected={row.fields.color === "gray" ? true : false}
+                    >
+                      Gray
+                    </option>
+                  </select>
+                </div>
+              ),
+
+              width: "11rem",
+            });
 
             // Add custom columns for 'Actions'
             columns.push({
@@ -146,14 +226,38 @@ const Favourites = () => {
     // console.log(isRemoved);
 
     fetchFavoriteReceipts();
-  }, [currentUser, isRemoved, editModalIsOpen, deleteButtonClicked]);
+  }, [
+    currentUser,
+    isRemoved,
+    editModalIsOpen,
+    deleteButtonClicked,
+    isColorChanged,
+  ]);
+
+  const handleRowColorChange = async (e, row) => {
+    // console.log(row);
+    const id = row._id;
+    const color = e.target.value;
+
+    await axios
+      .put(`${backendUrl}/filter/update-color/${id}`, {
+        color: color,
+      })
+      .then((response) => {
+        // console.log(response.data);
+        setIsColorChanged((prev) => !prev);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
 
   const removeFavourites = async (receiptId, currentUser) => {
     const userId = currentUser.id;
 
     // Remove from favorites
     await axios
-      .post("http://localhost:30000/api/receipt/remove-favourite", {
+      .post(`${backendUrl}/receipt/remove-favourite`, {
         userId: userId,
         recieptId: receiptId,
       })
@@ -182,7 +286,7 @@ const Favourites = () => {
     // console.log(id);
     try {
       const response = await axios.post(
-        `http://localhost:30000/api/receipt/update-receipt/${id}`,
+        `${backendUrl}/receipt/update-receipt/${id}`,
         currentReceipt.fields,
         {
           headers: {
@@ -219,7 +323,7 @@ const Favourites = () => {
       (result) => {
         if (result.isConfirmed) {
           axios
-            .delete(`http://localhost:30000/api/receipt/delete-receipt/${id}`)
+            .delete(`${backendUrl}/receipt/delete-receipt/${id}`)
             .then((response) => {
               // console.log("Response:", response.data);
               if (response.data.success) {
@@ -264,6 +368,7 @@ const Favourites = () => {
   }
 
   const isFile = (value) => {
+    if (typeof value !== "string") return false;
     // Check common file extensions for images, PDFs, or any file types
     return (
       value.endsWith(".jpg") ||
@@ -339,7 +444,7 @@ const Favourites = () => {
           ))}
         </div>
       </div> */}
-      <div className="w-[100] m-5 bg-white p-2 rounded-xl">
+      <div className="w-[100] m-5 mt-12 sm:mt-4 bg-white p-2 rounded-xl">
         <DataTable
           columns={columns}
           data={records}
@@ -366,33 +471,37 @@ const Favourites = () => {
           {currentReceipt && currentReceipt.fields && (
             <>
               {Object.entries(currentReceipt.fields).map(
-                ([key, value], index) => (
-                  <div
-                    key={index}
-                    className="sm:w-[35rem] flex items-center justify-start p-2 pl-0 gap-2 text-md font-medium"
-                  >
-                    {key.charAt(0).toUpperCase() + key.slice(1)}:{" "}
-                    {typeof value === "string" ? (
-                      isFile(value) || value.startsWith("http") ? ( // Check if value is a file or a path
-                        <a
-                          href={value}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs font-medium bg-blue-700 px-3 py-2 text-white rounded-md hover:bg-blue-900"
-                        >
-                          View
-                        </a>
+                ([key, value], index) => {
+                  if (key === "color") return null;
+
+                  return (
+                    <div
+                      key={index}
+                      className="sm:w-[35rem] flex items-center justify-start p-2 pl-0 gap-2 text-md font-medium"
+                    >
+                      {key === "price"
+                        ? "Euro(price)"
+                        : key.charAt(0).toUpperCase() + key.slice(1)}
+                      :{" "}
+                      {typeof value === "string" ? (
+                        isFile(value) || value.startsWith("http") ? ( // Check if value is a file or a path
+                          <a
+                            href={value}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs font-medium bg-blue-700 px-3 py-2 text-white rounded-md hover:bg-blue-900"
+                          >
+                            View
+                          </a>
+                        ) : (
+                          <h3 className="text-sm font-normal">{value}</h3> // Render normal value
+                        )
                       ) : (
                         <h3 className="text-sm font-normal">{value}</h3> // Render normal value
-                      )
-                    ) : (
-                      // Fallback for null/undefined value or unsupported type
-                      <h3 className="text-sm font-normal text-gray-500">
-                        Invalid Data
-                      </h3>
-                    )}
-                  </div>
-                )
+                      )}
+                    </div>
+                  );
+                }
               )}
             </>
           )}
@@ -428,13 +537,15 @@ const Favourites = () => {
 
                   return (
                     <div key={index} className="mb-4">
-                      {!(isPath || isFilePath) ? ( // Render input only if it's not a path or file
+                      {!(isPath || isFilePath) && key !== "color" ? ( // Render input only if it's not a path or file
                         <>
                           <label
                             htmlFor={key}
                             className="block text-sm font-medium text-gray-700"
                           >
-                            {key.charAt(0).toUpperCase() + key.slice(1)}
+                            {key === "price"
+                              ? "Euro(price)"
+                              : key.charAt(0).toUpperCase() + key.slice(1)}
                           </label>
                           <input
                             id={key}

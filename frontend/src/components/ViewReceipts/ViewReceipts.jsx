@@ -1,6 +1,4 @@
 import React, { useContext, useEffect, useState } from "react";
-import { DatePicker, Space } from "antd";
-import moment from "moment";
 import Modal from "react-modal";
 import axios from "axios";
 import Header from "../Header";
@@ -12,6 +10,8 @@ import redFillHeart from "../../assets/icons/redfillheart.svg";
 import { sweetAlert } from "../../utils/Alerts/sweetAlert";
 import { toastAlert } from "../../utils/Alerts/toastAlert";
 import { AuthContext } from "../../utils/context/AuthContext";
+
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const customStylesForModal = {
   content: {
@@ -51,21 +51,17 @@ const customStyles = {
       fontSize: "0.9rem",
     },
   },
-  // rows: {
-  //   style: (row) => ({
-  //     backgroundColor: row.fields.color || "transparent", // Use the color from the data or default to transparent
-  //     color: "white",
-  //     padding: "0.75rem",
-  //     "&:hover": {
-  //       backgroundColor: row.fields.color || "#F1F1F1", // Keep hover color as the original row color or default
-  //     },
-  //   }),
-  // },
+  rows: {
+    style: {
+      paddingTop: "2px",
+    },
+  },
 };
 
 const ViewReceipts = () => {
   // const [records, setRecords] = useState(receipts);
   // const [receipt, setReceipt] = useState(null);
+
   const [viewModalIsOpen, setviewModalIsOpen] = useState(false);
   const [editModalIsOpen, setEditModalIsOpen] = useState(false);
   const [currentReceipt, setCurrentReceipt] = useState({});
@@ -78,77 +74,126 @@ const ViewReceipts = () => {
 
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [startTime, setStartTIme] = useState("");
+  const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [month, setMonth] = useState();
   const [minPrice, setMinPrice] = useState();
   const [maxPrice, setMaxPrice] = useState();
-  const [startCodiciId, setStartCodiciId] = useState("");
-  const [endCodiciId, setEndCodiciId] = useState("");
+  const [codiciId, setCodiciId] = useState("");
   const [banca, setBanca] = useState("");
   const [benef, setBenef] = useState("");
   const [ordinate, setOrdinate] = useState("");
   const [causale, setCausale] = useState("");
+  const [color, setColor] = useState("");
+  const [isColorChanged, setIsColorChanged] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       await axios
-        .get("http://localhost:30000/api/receipt/get-receipts")
+        .get(`${backendUrl}/receipt/get-receipts`)
         .then((response) => {
           // console.log(response);
 
           setResData(response.data.result);
 
           // Generate columns based on data
-          const columns = Object.keys(response.data.result[0].fields || {}).map(
-            (key) => ({
-              name: key.charAt(0).toUpperCase() + key.slice(1), // Capitalize the first letter
+          const columns = Object.keys(response.data.result[0].fields || {})
+            .filter((key) => key !== "Upload Image" && key !== "color") // Exclude specific keys
+            .map((key) => ({
+              name:
+                key === "price"
+                  ? "Euro(price)"
+                  : key.charAt(0).toUpperCase() + key.slice(1), // Capitalize the first letter
               selector: (row) => {
                 const value = row.fields[key];
-                // Handle cases where the value is an object (like for "Upload Image")
-                if (typeof value === "object" && value !== null && value.path) {
-                  return <p>{value.name}</p>;
-                }
+
                 return value;
               },
               sortable: true,
               field: key,
-            })
-          );
+            }));
 
-          // Add custom columns for 'Actions'
+          // Add custom columns for 'Label Color'
           columns.push({
-            name: "Colors",
+            name: "Label Color",
             cell: (row) => (
-              <div className="block w-full">
+              <div
+                className={`block w-full p-3 ${
+                  row.fields.color === "red"
+                    ? "bg-red-500"
+                    : row.fields.color === "blue"
+                    ? "bg-blue-500"
+                    : row.fields.color === "green"
+                    ? "bg-green-500"
+                    : row.fields.color === "yellow"
+                    ? "bg-yellow-500"
+                    : row.fields.color === "orange"
+                    ? "bg-orange-500"
+                    : row.fields.color === "gray"
+                    ? "bg-gray-500"
+                    : "bg-transparent"
+                }`}
+              >
                 <select
                   id=""
-                  className="h-9 border border-gray-300 text-gray-600 text-sm rounded-lg block w-28 py-0.5 px-1 focus:outline-none"
+                  onChange={(e) => {
+                    handleRowColorChange(e, row);
+                  }}
+                  className="h-7 border border-gray-300 text-gray-600 text-sm rounded-lg block w-28 py-0.5 px-1 focus:outline-none"
                 >
-                  <option>color</option>
-                  <option value="" className="text-red-600 font-bold">
+                  <option
+                    value=""
+                    selected={row.fields.color === "" ? true : false}
+                  >
+                    No Color
+                  </option>
+                  <option
+                    value="red"
+                    className="text-red-600 font-bold"
+                    selected={row.fields.color === "red" ? true : false}
+                  >
                     Red
                   </option>
-                  <option value="" className="text-blue-600 font-bold">
+                  <option
+                    value="blue"
+                    className="text-blue-600 font-bold"
+                    selected={row.fields.color === "blue" ? true : false}
+                  >
                     Blue
                   </option>
-                  <option value="" className="text-green-600 font-bold">
+                  <option
+                    value="green"
+                    className="text-green-600 font-bold"
+                    selected={row.fields.color === "green" ? true : false}
+                  >
                     Green
                   </option>
-                  <option value="" className="text-yellow-600 font-bold">
+                  <option
+                    value="yellow"
+                    className="text-yellow-600 font-bold"
+                    selected={row.fields.color === "yellow" ? true : false}
+                  >
                     Yellow
                   </option>
-                  <option value="" className="text-orange-600 font-bold">
+                  <option
+                    value="orange"
+                    className="text-orange-600 font-bold"
+                    selected={row.fields.color === "orange" ? true : false}
+                  >
                     Orange
                   </option>
-                  <option value="" className="text-gray-600 font-bold">
+                  <option
+                    value="gray"
+                    className="text-gray-600 font-bold"
+                    selected={row.fields.color === "gray" ? true : false}
+                  >
                     Gray
                   </option>
                 </select>
               </div>
             ),
 
-            width: "150px",
+            width: "11rem",
           });
 
           columns.push({
@@ -208,15 +253,37 @@ const ViewReceipts = () => {
     setDeleteButtonClicked(false);
 
     fetchData();
-  }, [editModalIsOpen, deleteButtonClicked, currentUser, favoriteReceipts]);
+  }, [
+    editModalIsOpen,
+    deleteButtonClicked,
+    currentUser,
+    favoriteReceipts,
+    isColorChanged,
+  ]);
+
+  const handleRowColorChange = async (e, row) => {
+    // console.log(row);
+    const id = row._id;
+    const color = e.target.value;
+
+    await axios
+      .put(`${backendUrl}/filter/update-color/${id}`, {
+        color: color,
+      })
+      .then((response) => {
+        // console.log(response.data);
+        setIsColorChanged((prev) => !prev);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
 
   useEffect(() => {
     const fetchFavoriteReceipts = async () => {
       if (currentUser) {
         await axios
-          .get(
-            `http://localhost:30000/api/receipt/get-favourite/${currentUser.id}`
-          )
+          .get(`${backendUrl}/receipt/get-favourite/${currentUser.id}`)
           .then((favoritesResponse) => {
             setFavoriteReceipts(
               favoritesResponse.data.data.map((fav) => fav._id)
@@ -243,7 +310,7 @@ const ViewReceipts = () => {
       if (favoriteReceipts.includes(receiptId)) {
         // Remove from favorites
         await axios
-          .post("http://localhost:30000/api/receipt/remove-favourite", {
+          .post(`${backendUrl}/receipt/remove-favourite`, {
             userId: userId,
             recieptId: receiptId,
           })
@@ -269,7 +336,7 @@ const ViewReceipts = () => {
       } else {
         // Add to favorites
         await axios
-          .post("http://localhost:30000/api/receipt/add-favourite", {
+          .post(`${backendUrl}/receipt/add-favourite`, {
             userId: userId,
             recieptId: receiptId,
           })
@@ -308,7 +375,7 @@ const ViewReceipts = () => {
     // console.log(id);
     try {
       const response = await axios.post(
-        `http://localhost:30000/api/receipt/update-receipt/${id}`,
+        `${backendUrl}/receipt/update-receipt/${id}`,
         currentReceipt.fields,
         {
           headers: {
@@ -345,7 +412,7 @@ const ViewReceipts = () => {
       (result) => {
         if (result.isConfirmed) {
           axios
-            .delete(`http://localhost:30000/api/receipt/delete-receipt/${id}`)
+            .delete(`${backendUrl}/receipt/delete-receipt/${id}`)
             .then((response) => {
               // console.log("Response:", response.data);
               if (response.data.success) {
@@ -368,18 +435,6 @@ const ViewReceipts = () => {
         }
       }
     );
-    // try {
-    //   const response = await axios.delete(
-    //     `http://localhost:30000/api/receipt/delete-receipt/${id}`
-    //   );
-    //   // console.log("Response:", response.data);
-    //   if (response.data.success) {
-    //     setDeleteButtonClicked(true);
-    //     // console.log(response.data.message);
-    //   }
-    // } catch (error) {
-    //   console.error("Error submitting form", error);
-    // }
   };
 
   function openViewReceiptModal(receipt) {
@@ -402,6 +457,7 @@ const ViewReceipts = () => {
   }
 
   const isFile = (value) => {
+    if (typeof value !== "string") return false;
     // Check common file extensions for images, PDFs, or any file types
     return (
       value.endsWith(".jpg") ||
@@ -454,7 +510,7 @@ const ViewReceipts = () => {
   const filterDataFetch = async (e) => {
     e.preventDefault();
     await axios
-      .post("http://localhost:30000/api/filter/get-filter", {
+      .post(`${backendUrl}/filter/get-filter`, {
         month: month,
         minPrice: minPrice,
         maxPrice: maxPrice,
@@ -462,8 +518,12 @@ const ViewReceipts = () => {
         endDate: endDate,
         startTime: startTime,
         endTime: endTime,
-        startCodiciId: startCodiciId,
-        endCodiciId: endCodiciId,
+        codiciId: codiciId,
+        banca: banca,
+        benef: benef,
+        ordinate: ordinate,
+        causale: causale,
+        color: color,
       })
       .then((responce) => {
         // console.log(responce);
@@ -487,19 +547,18 @@ const ViewReceipts = () => {
 
       {/* Filters section */}
 
-      <div className="w-[100] m-5 bg-white py-7 px-5 rounded-xl gap-5 items-center">
+      <div className="w-[100] mt-12 sm:mt-2 mx-5 bg-white py-7 px-5 rounded-xl gap-5 items-center">
         <form
           onSubmit={filterDataFetch}
           className="flex flex-col gap-4 items-center"
         >
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3 justify-center md:justify-start overflow-x-auto">
+            {/* Month filter */}
             <div className="bg-[#F05924] w-[7rem] px-2 pt-0.25 pb-0.5 text-white flex justify-between items-center rounded-lg">
               <select
                 name="month"
-                onChange={(e) => {
-                  setMonth(e.target.value);
-                }}
-                className="h-9 block w-[7rem] text-sm font-semibold text-white bg-transparent rounded-md placeholder-black/50 focus:outline-none leading-relaxed "
+                onChange={(e) => setMonth(e.target.value)}
+                className="h-9 block w-full text-sm font-semibold text-white bg-transparent rounded-md placeholder-black/50 focus:outline-none leading-relaxed"
               >
                 <option value="" className="text-black" disabled selected>
                   Month
@@ -542,181 +601,160 @@ const ViewReceipts = () => {
                 </option>
               </select>
             </div>
-            {/* Date Range */}
-            <div className="bg-[#F05924] w-[20rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
-              <p className="text-sm font-semibold">Date Range</p>
-              <input
-                type="text"
-                placeholder="Start Date"
-                className="block bg-white w-[6.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
-                value={startDate}
-                onFocus={(e) => (e.target.type = "date")}
-                onBlur={(e) => !startDate && (e.target.type = "text")}
-                onChange={(e) => {
-                  setStartDate(e.target.value);
-                }}
-              />
-              <input
-                type="text"
-                placeholder="End Date"
-                className="block bg-white w-[6.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
-                value={endDate}
-                onFocus={(e) => (e.target.type = "date")}
-                onBlur={(e) => !endDate && (e.target.type = "text")}
-                onChange={(e) => {
-                  setEndDate(e.target.value);
-                }}
-              />
-            </div>
-            {/* Time Range */}
-            <div className="bg-[#F05924] w-[20rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
-              <p className="text-sm font-semibold">Time Range</p>
-              <input
-                type="text"
-                placeholder="Start Time"
-                className="block bg-white w-[6.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
-                value={startTime}
-                onFocus={(e) => (e.target.type = "time")}
-                onBlur={(e) => !startTime && (e.target.type = "text")}
-                onChange={(e) => {
-                  setStartTIme(e.target.value);
-                }}
-              />
-              <input
-                type="text"
-                placeholder="End Time"
-                className="block bg-white w-[6.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
-                value={endTime}
-                onFocus={(e) => (e.target.type = "time")}
-                onBlur={(e) => !endTime && (e.target.type = "text")}
-                onChange={(e) => {
-                  setEndTime(e.target.value);
-                }}
-              />
-            </div>
+
             {/* Color filter */}
-            <div className="bg-[#F05924] w-[7rem] px-2 pt-0.25 pb-0.5 text-white flex justify-between items-center rounded-lg">
+            <div className="bg-[#F05924] w-[9rem] px-2 pt-0.25 pb-0.5 text-white flex justify-between items-center rounded-lg">
               <select
                 name="color"
-                onChange={(e) => {}}
-                className="h-9 block w-[7rem] text-sm font-semibold text-white bg-transparent rounded-md placeholder-black/50 focus:outline-none leading-relaxed "
+                onChange={(e) => setColor(e.target.value)}
+                className="h-9 block w-full text-sm font-semibold text-white bg-transparent rounded-md placeholder-black/50 focus:outline-none leading-relaxed"
               >
-                <option value="" className="text-black">
-                  Color
+                <option value="" className="text-black" disabled selected>
+                  Label Color
                 </option>
-                <option value="1" className="text-red-600 font-bold">
+                <option value="red" className="text-red-600 font-bold">
                   Red
                 </option>
-                <option value="2" className="text-blue-600 font-bold">
+                <option value="blue" className="text-blue-600 font-bold">
                   Blue
                 </option>
-                <option value="3" className="text-green-600 font-bold">
+                <option value="green" className="text-green-600 font-bold">
                   Green
                 </option>
-                <option value="4" className="text-yellow-600 font-bold">
+                <option value="yellow" className="text-yellow-600 font-bold">
                   Yellow
                 </option>
-                <option value="5" className="text-orange-600 font-bold">
+                <option value="orange" className="text-orange-600 font-bold">
                   Orange
                 </option>
-                <option value="6" className="text-gray-600 font-bold">
+                <option value="gray" className="text-gray-600 font-bold">
                   Gray
                 </option>
               </select>
             </div>
 
             {/* Codici Id filter */}
-            <div className="bg-[#F05924] w-[16rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
+            <div className="bg-[#F05924] w-[12.5rem] md:w-[16rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
               <p className="text-sm font-semibold">Codici ID</p>
               <input
                 type="text"
-                placeholder="Start"
-                className="block bg-white w-[5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
-                value={startCodiciId}
-                onChange={(e) => {
-                  setStartCodiciId(e.target.value);
-                }}
-              />
-              <input
-                type="text"
-                placeholder="End"
-                className="block bg-white w-[5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
-                value={endCodiciId}
-                onChange={(e) => {
-                  setEndCodiciId(e.target.value);
-                }}
+                placeholder="Codici ID"
+                className="block bg-white w-[7rem] md:w-[10rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
+                value={codiciId}
+                onChange={(e) => setCodiciId(e.target.value)}
               />
             </div>
-          </div>
 
-          <div className="flex gap-3">
-            {/* Price filter */}
-
-            <div className="bg-[#F05924] w-[17rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
-              <p className="text-sm font-semibold">Price Range</p>
-              <input
-                type="text"
-                placeholder="Start"
-                className="block bg-white w-[5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
-                onChange={(e) => {
-                  setMinPrice(parseFloat(e.target.value));
-                }}
-              />
-              <input
-                type="text"
-                placeholder="End"
-                className="block bg-white w-[5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
-                onChange={(e) => {
-                  setMaxPrice(parseFloat(e.target.value));
-                }}
-              />
-            </div>
-            <div className="bg-[#F05924] w-[13rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
+            {/* Benef filter */}
+            <div className="bg-[#F05924] w-[11.5rem] md:w-[13rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
               <p className="text-sm font-semibold">Benef</p>
               <input
                 type="text"
                 value={benef}
                 placeholder="Benef"
-                className="block bg-white w-[8.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
-                onChange={(e) => {
-                  setBenef(e.target.value);
-                }}
+                className="block bg-white w-[7rem] md:w-[8.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
+                onChange={(e) => setBenef(e.target.value)}
               />
             </div>
-            <div className="bg-[#F05924] w-[13rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
+
+            {/* Banca filter */}
+            <div className="bg-[#F05924] w-[11.5rem] md:w-[13rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
               <p className="text-sm font-semibold">Banca</p>
               <input
                 type="text"
                 placeholder="Banca"
                 value={banca}
-                className="block bg-white w-[8.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
-                onChange={(e) => {
-                  setBanca(e.target.value);
-                }}
+                className="block bg-white w-[7rem] md:w-[8.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
+                onChange={(e) => setBanca(e.target.value)}
               />
             </div>
-            <div className="bg-[#F05924] w-[14rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
+
+            {/* Ordinate filter */}
+            <div className="bg-[#F05924] w-[13.5rem] md:w-[14rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
               <p className="text-sm font-semibold">Ordinate</p>
               <input
                 type="text"
                 placeholder="Ordinate"
                 value={ordinate}
-                className="block bg-white w-[8.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
-                onChange={(e) => {
-                  setOrdinate(e.target.value);
-                }}
+                className="block bg-white w-[8rem] md:w-[8.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
+                onChange={(e) => setOrdinate(e.target.value)}
               />
             </div>
-            <div className="bg-[#F05924] w-[14rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
+          </div>
+
+          <div className="flex flex-wrap gap-3 justify-center md:justify-start">
+            {/* Causale filter */}
+            <div className="bg-[#F05924] w-[13rem] md:w-[14rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
               <p className="text-sm font-semibold">Causale</p>
               <input
                 type="text"
                 placeholder="Causale"
                 value={causale}
-                className="block bg-white w-[8.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
-                onChange={(e) => {
-                  setCausale(e.target.value);
-                }}
+                className="block bg-white w-[7.5rem] md:w-[8.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border border-white rounded-md focus:outline-none"
+                onChange={(e) => setCausale(e.target.value)}
+              />
+            </div>
+
+            {/* Price filter */}
+            <div className="bg-[#F05924] w-[20rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
+              <p className="text-sm font-semibold">Price Range</p>
+              <input
+                type="text"
+                placeholder="Start"
+                className="block bg-white w-[6.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border-none rounded-md focus:outline-none focus:border-none"
+                onChange={(e) => setMinPrice(parseFloat(e.target.value))}
+              />
+              <input
+                type="text"
+                placeholder="End"
+                className="block bg-white w-[6.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border-none rounded-md focus:outline-none focus:border-none"
+                onChange={(e) => setMaxPrice(parseFloat(e.target.value))}
+              />
+            </div>
+
+            {/* Date Range */}
+            <div className="bg-[#F05924] w-[20rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
+              <p className="text-sm font-semibold">Date Range</p>
+              <input
+                type="text"
+                placeholder="Start Date"
+                className="block bg-white w-[6.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border-none rounded-md focus:outline-none focus:border-none"
+                value={startDate}
+                onFocus={(e) => (e.target.type = "date")}
+                onBlur={(e) => !startDate && (e.target.type = "text")}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+              <input
+                type="text"
+                placeholder="End Date"
+                className="block bg-white w-[6.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border-none rounded-md focus:outline-none focus:border-none"
+                value={endDate}
+                onFocus={(e) => (e.target.type = "date")}
+                onBlur={(e) => !endDate && (e.target.type = "text")}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
+
+            {/* Time Range */}
+            <div className="bg-[#F05924] w-[20rem] py-2 px-3 text-white flex justify-between items-center rounded-lg">
+              <p className="text-sm font-semibold">Time Range</p>
+              <input
+                type="text"
+                placeholder="Start Time"
+                className="block bg-white w-[6.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border-none rounded-md focus:outline-none focus:border-none"
+                value={startTime}
+                onFocus={(e) => (e.target.type = "time")}
+                onBlur={(e) => !startTime && (e.target.type = "text")}
+                onChange={(e) => setStartTime(e.target.value)}
+              />
+              <input
+                type="text"
+                placeholder="End Time"
+                className="block bg-white w-[6.5rem] pr-3 pl-2 py-1 text-xs font-normal shadow-xs text-black bg-transparent border-none rounded-md focus:outline-none focus:border-none"
+                value={endTime}
+                onFocus={(e) => (e.target.type = "time")}
+                onBlur={(e) => !endTime && (e.target.type = "text")}
+                onChange={(e) => setEndTime(e.target.value)}
               />
             </div>
           </div>
@@ -739,6 +777,7 @@ const ViewReceipts = () => {
           </div>
         </form>
       </div>
+
       <div className="w-[100] m-5 bg-white p-2 rounded-xl">
         <DataTable
           columns={columns}
@@ -767,33 +806,37 @@ const ViewReceipts = () => {
           {currentReceipt && currentReceipt.fields && (
             <>
               {Object.entries(currentReceipt.fields).map(
-                ([key, value], index) => (
-                  <div
-                    key={index}
-                    className="sm:w-[35rem] flex items-center justify-start p-2 pl-0 gap-2 text-md font-medium"
-                  >
-                    {key.charAt(0).toUpperCase() + key.slice(1)}:{" "}
-                    {typeof value === "string" ? (
-                      isFile(value) || value.startsWith("http") ? ( // Check if value is a file or a path
-                        <a
-                          href={value}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs font-medium bg-blue-700 px-3 py-2 text-white rounded-md hover:bg-blue-900"
-                        >
-                          View
-                        </a>
+                ([key, value], index) => {
+                  if (key === "color") return null;
+
+                  return (
+                    <div
+                      key={index}
+                      className="sm:w-[35rem] flex items-center justify-start p-2 pl-0 gap-2 text-md font-medium"
+                    >
+                      {key === "price"
+                        ? "Euro(price)"
+                        : key.charAt(0).toUpperCase() + key.slice(1)}
+                      :{" "}
+                      {typeof value === "string" ? (
+                        isFile(value) || value.startsWith("http") ? ( // Check if value is a file or a path
+                          <a
+                            href={value}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs font-medium bg-blue-700 px-3 py-2 text-white rounded-md hover:bg-blue-900"
+                          >
+                            View
+                          </a>
+                        ) : (
+                          <h3 className="text-sm font-normal">{value}</h3> // Render normal value
+                        )
                       ) : (
                         <h3 className="text-sm font-normal">{value}</h3> // Render normal value
-                      )
-                    ) : (
-                      // Fallback for null/undefined value or unsupported type
-                      <h3 className="text-sm font-normal text-gray-500">
-                        Invalid Data
-                      </h3>
-                    )}
-                  </div>
-                )
+                      )}
+                    </div>
+                  );
+                }
               )}
             </>
           )}
@@ -829,13 +872,15 @@ const ViewReceipts = () => {
 
                   return (
                     <div key={index} className="mb-4">
-                      {!(isPath || isFilePath) ? ( // Render input only if it's not a path or file
+                      {!(isPath || isFilePath) && key !== "color" ? ( // Render input only if it's not a path or file
                         <>
                           <label
                             htmlFor={key}
                             className="block text-sm font-medium text-gray-700"
                           >
-                            {key.charAt(0).toUpperCase() + key.slice(1)}
+                            {key === "price"
+                              ? "Euro(price)"
+                              : key.charAt(0).toUpperCase() + key.slice(1)}
                           </label>
                           <input
                             id={key}

@@ -20,12 +20,6 @@ const UploadFIleInput = ({ label, onChange, requiredField }) => {
             onChange={onChange}
             className="ml-3"
           />
-          <div
-            className="flex w-28 h-11 px-2 flex-col bg-[#BF3606] rounded-md shadow text-white text-xs font-semibold leading-4 
-                                             items-center justify-center cursor-pointer focus:outline-none"
-          >
-            UPLOAD
-          </div>
         </div>
       </label>
     </div>

@@ -7,6 +7,8 @@ import crossIcon from "../../assets/icons/cross.svg";
 import { sweetAlert } from "../../utils/Alerts/sweetAlert";
 import { toastAlert } from "../../utils/Alerts/toastAlert";
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
 const ChangeForm = () => {
   const [inputFields, setInputFields] = useState([]);
   const [fieldName, setFieldName] = useState("");
@@ -18,9 +20,7 @@ const ChangeForm = () => {
   useEffect(() => {
     const fetchFields = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:30000/api/receipt/get-fields"
-        );
+        const response = await axios.get(`${backendUrl}/receipt/get-fields`);
         // console.log(response);
         if (response.data.success) {
           setInputFields(response.data.fields);
@@ -39,7 +39,7 @@ const ChangeForm = () => {
       (result) => {
         if (result.isConfirmed) {
           axios
-            .post("http://localhost:30000/api/receipt/delete-field", {
+            .post(`${backendUrl}/receipt/delete-field`, {
               fieldName: name,
             })
             .then((response) => {
@@ -72,7 +72,7 @@ const ChangeForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     axios
-      .post("http://localhost:30000/api/receipt/add-field", {
+      .post(`${backendUrl}/receipt/add-field`, {
         fieldName: fieldName,
         fieldType: fieldType,
         required: required,
