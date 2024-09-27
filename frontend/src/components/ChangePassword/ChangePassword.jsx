@@ -6,6 +6,9 @@ import axios from "axios";
 import { AuthContext } from "../../utils/context/AuthContext";
 import { toastAlert } from "../../utils/Alerts/toastAlert";
 
+import Backdrop from "@mui/material/Backdrop";
+import CircularProgress from "@mui/material/CircularProgress";
+
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const ChangePassword = () => {
@@ -19,6 +22,8 @@ const ChangePassword = () => {
 
   const { currentUser, logout } = useContext(AuthContext);
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,6 +36,7 @@ const ChangePassword = () => {
     e.preventDefault();
 
     const id = currentUser.id;
+    setIsLoading(true);
 
     await axios
       .put(`${backendUrl}/auth/change-password/${id}`, {
@@ -42,6 +48,7 @@ const ChangePassword = () => {
         // console.log(response);
         if (response.data.success) {
           logout();
+          setIsLoading(false);
           navigate("/", { replace: true });
           toastAlert("info", "You have to log in again !");
           toastAlert("success", "Password Changed !");
@@ -51,9 +58,11 @@ const ChangePassword = () => {
         if (error.response) {
           // Handle invalid credentials
           toastAlert("error", error.response.data.message);
+          setIsLoading(false);
         } else {
           // Handle server or network error
           toastAlert("error", "Server Error!");
+          setIsLoading(false);
         }
       });
   };
@@ -138,6 +147,15 @@ const ChangePassword = () => {
           </button>
         </form>
       </div>
+
+      {isLoading && (
+        <Backdrop
+          sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
+          open
+        >
+          <CircularProgress color="inherit" />
+        </Backdrop>
+      )}
     </section>
   );
 };

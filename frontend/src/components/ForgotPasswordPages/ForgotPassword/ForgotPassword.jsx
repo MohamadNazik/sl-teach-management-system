@@ -11,10 +11,14 @@ import {
 import { toastAlert } from "../../../utils/Alerts/toastAlert";
 import { ForgotPasswordContext } from "../../../utils/context/ForgotPasswordContext";
 
+import Backdrop from "@mui/material/Backdrop";
+import CircularProgress from "@mui/material/CircularProgress";
+
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const ForgotPassword = () => {
   const location = useLocation();
+  const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -23,6 +27,7 @@ const ForgotPassword = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
     await axios
       .post(`${backendUrl}/admin/forgot-password`, {
         email: email,
@@ -33,15 +38,18 @@ const ForgotPassword = () => {
           setUser(response.data.data);
           navigate("/forgot-password/verify-otp", { replace: true });
           toastAlert("success", `OTP sent to ${email}`);
+          setIsLoading(false);
         }
       })
       .catch((error) => {
         if (error.response) {
           // Handle invalid credentials
           toastAlert("error", error.response.data.message);
+          setIsLoading(false);
         } else {
           // Handle server or network error
           toastAlert("error", "Server Error!");
+          setIsLoading(false);
         }
       });
   };
@@ -86,6 +94,14 @@ const ForgotPassword = () => {
             </form>
           </div>
         </section>
+      )}
+      {isLoading && (
+        <Backdrop
+          sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
+          open
+        >
+          <CircularProgress color="inherit" />
+        </Backdrop>
       )}
       <Outlet />
     </>

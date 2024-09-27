@@ -8,6 +8,9 @@ import { AuthContext } from "../../utils/context/AuthContext";
 import "react-toastify/dist/ReactToastify.css";
 import { toastAlert } from "../../utils/Alerts/toastAlert";
 
+import Backdrop from "@mui/material/Backdrop";
+import CircularProgress from "@mui/material/CircularProgress";
+
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const LoginPage = () => {
@@ -15,6 +18,8 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [isHide, setIsHide] = useState(true);
   const { currentUser, login } = useContext(AuthContext);
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -36,7 +41,8 @@ const LoginPage = () => {
     e.preventDefault();
 
     if (!currentUser) {
-      axios
+      setIsLoading(true);
+      await axios
         .post(`${backendUrl}/admin/admin-login`, {
           staffId,
           password,
@@ -47,6 +53,7 @@ const LoginPage = () => {
           if (response.data.success) {
             const { user } = response.data;
             login(user);
+            setIsLoading(false);
 
             if (user.role === 1) {
               navigate("/admin-dashboard", { replace: true });
@@ -65,9 +72,11 @@ const LoginPage = () => {
           if (error.response) {
             // Handle invalid credentials
             toastAlert("error", error.response.data.message);
+            setIsLoading(false);
           } else {
             // Handle server or network error
             toastAlert("error", "Server Error!");
+            setIsLoading(false);
           }
         });
     }
@@ -189,6 +198,15 @@ const LoginPage = () => {
           </div>
         </form>
       </div>
+
+      {isLoading && (
+        <Backdrop
+          sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
+          open
+        >
+          <CircularProgress color="inherit" />
+        </Backdrop>
+      )}
     </section>
   );
 };

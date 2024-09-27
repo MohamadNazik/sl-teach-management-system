@@ -8,7 +8,7 @@ import heart from "../assets/icons/white_heart.svg";
 import home from "../assets/icons/home.svg";
 import { AuthContext } from "../utils/context/AuthContext";
 
-const Header = ({ page, isDashboard, role }) => {
+const Header = ({ page, isDashboard }) => {
   const { logout } = useContext(AuthContext);
 
   const currentUser = JSON.parse(localStorage.getItem("user"));

@@ -9,6 +9,9 @@ import redFillHeart from "../../assets/icons/redfillheart.svg";
 import { toastAlert } from "../../utils/Alerts/toastAlert";
 import { sweetAlert } from "../../utils/Alerts/sweetAlert";
 
+import Backdrop from "@mui/material/Backdrop";
+import CircularProgress from "@mui/material/CircularProgress";
+
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const customStylesForModal = {
@@ -64,14 +67,18 @@ const Favourites = () => {
   const { currentUser } = useContext(AuthContext);
   const [isColorChanged, setIsColorChanged] = useState(false);
 
+  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
     const fetchFavoriteReceipts = async () => {
       if (currentUser) {
+        setIsLoading(true);
         await axios
           .get(`${backendUrl}/receipt/get-favourite/${currentUser.id}`)
           .then((response) => {
             // console.log(response.data.data);
             setRecords(response.data.data);
+            setIsLoading(false);
 
             const columns = Object.keys(response.data.data[0].fields || {})
               .filter((key) => key !== "Upload Image" && key !== "color") // Exclude specific keys
@@ -216,8 +223,10 @@ const Favourites = () => {
             if (error.response && error.response.status === 404) {
               toastAlert("error", error.response.data.message);
               setRecords([]);
+              setIsLoading(false);
             } else {
               toastAlert("error", error.response.data.message);
+              setIsLoading(false);
             }
           });
       }
@@ -239,6 +248,8 @@ const Favourites = () => {
     const id = row._id;
     const color = e.target.value;
 
+    setIsLoading(true);
+
     await axios
       .put(`${backendUrl}/filter/update-color/${id}`, {
         color: color,
@@ -246,9 +257,11 @@ const Favourites = () => {
       .then((response) => {
         // console.log(response.data);
         setIsColorChanged((prev) => !prev);
+        setIsLoading(false);
       })
       .catch((error) => {
-        console.log(error);
+        // console.log(error);
+        setIsLoading(false);
       });
   };
 
@@ -256,6 +269,8 @@ const Favourites = () => {
     const userId = currentUser.id;
 
     // Remove from favorites
+
+    setIsLoading(true);
     await axios
       .post(`${backendUrl}/receipt/remove-favourite`, {
         userId: userId,
@@ -266,6 +281,7 @@ const Favourites = () => {
         if (response.data.success) {
           setIsRemoved((prev) => !prev);
           toastAlert("success", "Removed from favorites");
+          setIsLoading(false);
         }
       })
       .catch((error) => {
@@ -273,9 +289,11 @@ const Favourites = () => {
         if (error.response && error.response.status === 404) {
           // Handle error response from the server
           toastAlert("error", error.response.data.message);
+          setIsLoading(false);
         } else {
           // Handle server or network error
           toastAlert("error", error.response.data.message);
+          setIsLoading(false);
         }
       });
   };
@@ -285,6 +303,7 @@ const Favourites = () => {
     const id = currentReceipt._id;
     // console.log(id);
     try {
+      setIsLoading(true);
       const response = await axios.post(
         `${backendUrl}/receipt/update-receipt/${id}`,
         currentReceipt.fields,
@@ -298,9 +317,10 @@ const Favourites = () => {
       // document.querySelector("form").reset();
       if (response.data.success) {
         setEditModalIsOpen(false);
+        setIsLoading(false);
       }
     } catch (error) {
-      console.error("Error submitting form", error);
+      // console.error("Error submitting form", error);
     }
   };
 
@@ -322,6 +342,7 @@ const Favourites = () => {
     sweetAlert("Are you sure you want to delete the receipt?").then(
       (result) => {
         if (result.isConfirmed) {
+          setIsLoading(true);
           axios
             .delete(`${backendUrl}/receipt/delete-receipt/${id}`)
             .then((response) => {
@@ -330,6 +351,7 @@ const Favourites = () => {
                 setDeleteButtonClicked(true);
                 toastAlert("success", "Receipt Deleted !");
                 // console.log(response.data.message);
+                setIsLoading(false);
               }
             })
             .catch((error) => {
@@ -337,9 +359,11 @@ const Favourites = () => {
               if (error.response) {
                 // Handle invalid credentials
                 toastAlert("error", error.response.data.message);
+                setIsLoading(false);
               } else {
                 // Handle server or network error
                 toastAlert("error", "Server Error!");
+                setIsLoading(false);
               }
             });
         } else if (result.isDenied) {
@@ -445,14 +469,23 @@ const Favourites = () => {
         </div>
       </div> */}
       <div className="w-[100] m-5 mt-12 sm:mt-4 bg-white p-2 rounded-xl">
-        <DataTable
-          columns={columns}
-          data={records}
-          customStyles={customStyles}
-          pagination
-          paginationRowsPerPageOptions={[50, 100, 200, 500, 1000, 1500]} // Custom dropdown valuess
-          paginationPerPage={50}
-        />
+        {isLoading ? (
+          <Backdrop
+            sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
+            open
+          >
+            <CircularProgress color="inherit" />
+          </Backdrop>
+        ) : (
+          <DataTable
+            columns={columns}
+            data={records}
+            customStyles={customStyles}
+            pagination
+            paginationRowsPerPageOptions={[50, 100, 200, 500, 1000, 1500]} // Custom dropdown valuess
+            paginationPerPage={50}
+          />
+        )}
       </div>
 
       {/* View modal */}

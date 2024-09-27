@@ -5,6 +5,9 @@ import Header from "../Header";
 import DataTable from "react-data-table-component";
 // import receipts from "../../assets/sample_data/Receipts";
 
+import Backdrop from "@mui/material/Backdrop";
+import CircularProgress from "@mui/material/CircularProgress";
+
 import lineHeart from "../../assets/icons/lineheart.svg";
 import redFillHeart from "../../assets/icons/redfillheart.svg";
 import { sweetAlert } from "../../utils/Alerts/sweetAlert";
@@ -87,7 +90,10 @@ const ViewReceipts = () => {
   const [color, setColor] = useState("");
   const [isColorChanged, setIsColorChanged] = useState(false);
 
+  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
+    setIsLoading(true);
     const fetchData = async () => {
       await axios
         .get(`${backendUrl}/receipt/get-receipts`)
@@ -95,6 +101,7 @@ const ViewReceipts = () => {
           // console.log(response);
 
           setResData(response.data.result);
+          setIsLoading(false);
 
           // Generate columns based on data
           const columns = Object.keys(response.data.result[0].fields || {})
@@ -243,9 +250,11 @@ const ViewReceipts = () => {
           if (error.response && error.response.status === 404) {
             // Handle error response from the server
             toastAlert("error", error.response.data.message);
+            setIsLoading(false);
           } else {
             // Handle server or network error
             toastAlert("error", error.response.data.message);
+            setIsLoading(false);
           }
         });
     };
@@ -263,6 +272,7 @@ const ViewReceipts = () => {
 
   const handleRowColorChange = async (e, row) => {
     // console.log(row);
+    setIsLoading(true);
     const id = row._id;
     const color = e.target.value;
 
@@ -273,28 +283,34 @@ const ViewReceipts = () => {
       .then((response) => {
         // console.log(response.data);
         setIsColorChanged((prev) => !prev);
+        setIsLoading(false);
       })
       .catch((error) => {
-        console.log(error);
+        // console.log(error);
+        setIsLoading(false);
       });
   };
 
   useEffect(() => {
     const fetchFavoriteReceipts = async () => {
       if (currentUser) {
+        setIsLoading(true);
         await axios
           .get(`${backendUrl}/receipt/get-favourite/${currentUser.id}`)
           .then((favoritesResponse) => {
             setFavoriteReceipts(
               favoritesResponse.data.data.map((fav) => fav._id)
             );
+            setIsLoading(false);
           })
           .catch((error) => {
             // console.error("Error fetching favorite receipts:", error);
             if (error.response && error.response.status === 404) {
               setFavoriteReceipts([]);
+              setIsLoading(false);
             } else {
               toastAlert("error", error.response.data.message);
+              setIsLoading(false);
             }
           });
       }
@@ -309,6 +325,7 @@ const ViewReceipts = () => {
 
       if (favoriteReceipts.includes(receiptId)) {
         // Remove from favorites
+        setIsLoading(true);
         await axios
           .post(`${backendUrl}/receipt/remove-favourite`, {
             userId: userId,
@@ -321,6 +338,7 @@ const ViewReceipts = () => {
                 favoriteReceipts.filter((id) => id !== receiptId)
               );
               toastAlert("success", "Removed from favorites");
+              setIsLoading(false);
             }
           })
           .catch((error) => {
@@ -328,13 +346,16 @@ const ViewReceipts = () => {
             if (error.response && error.response.status === 404) {
               // Handle error response from the server
               toastAlert("error", error.response.data.message);
+              setIsLoading(false);
             } else {
               // Handle server or network error
               toastAlert("error", error.response.data.message);
+              setIsLoading(false);
             }
           });
       } else {
         // Add to favorites
+        setIsLoading(true);
         await axios
           .post(`${backendUrl}/receipt/add-favourite`, {
             userId: userId,
@@ -345,6 +366,7 @@ const ViewReceipts = () => {
             if (response.data.success) {
               setFavoriteReceipts([...favoriteReceipts, receiptId]);
               toastAlert("success", "Added to favorites");
+              setIsLoading(false);
             }
           })
           .catch((error) => {
@@ -352,17 +374,21 @@ const ViewReceipts = () => {
             if (error.response && error.response.status === 404) {
               // Handle error response from the server
               toastAlert("error", error.response.data.message);
+              setIsLoading(false);
             } else {
               // Handle server or network error
               toastAlert("error", error.response.data.message);
+              setIsLoading(false);
             }
           });
       }
     } catch (error) {
       if (error.response && error.response.status === 404) {
         toastAlert("error", error.response.data.message);
+        setIsLoading(false);
       } else {
         toastAlert("error", error.response.data.message);
+        setIsLoading(false);
       }
     }
   };
@@ -374,6 +400,7 @@ const ViewReceipts = () => {
     const id = currentReceipt._id;
     // console.log(id);
     try {
+      setIsLoading(true);
       const response = await axios.post(
         `${backendUrl}/receipt/update-receipt/${id}`,
         currentReceipt.fields,
@@ -387,9 +414,11 @@ const ViewReceipts = () => {
       // document.querySelector("form").reset();
       if (response.data.success) {
         setEditModalIsOpen(false);
+        setIsLoading(false);
       }
     } catch (error) {
-      console.error("Error submitting form", error);
+      // console.error("Error submitting form", error);
+      setIsLoading(false);
     }
   };
 
@@ -407,10 +436,11 @@ const ViewReceipts = () => {
 
   const handleDeleteButton = async (receipt) => {
     const id = receipt._id;
-    console.log(receipt);
+    // console.log(receipt);
     sweetAlert("Are you sure you want to delete the receipt?").then(
       (result) => {
         if (result.isConfirmed) {
+          setIsLoading(true);
           axios
             .delete(`${backendUrl}/receipt/delete-receipt/${id}`)
             .then((response) => {
@@ -418,6 +448,7 @@ const ViewReceipts = () => {
               if (response.data.success) {
                 setDeleteButtonClicked(true);
                 toastAlert("success", "Receipt Deleted !");
+                setIsLoading(false);
                 // console.log(response.data.message);
               }
             })
@@ -426,9 +457,11 @@ const ViewReceipts = () => {
               if (error.response) {
                 // Handle invalid credentials
                 toastAlert("error", error.response.data.message);
+                setIsLoading(false);
               } else {
                 // Handle server or network error
                 toastAlert("error", "Server Error!");
+                setIsLoading(false);
               }
             });
         } else if (result.isDenied) {
@@ -509,6 +542,7 @@ const ViewReceipts = () => {
 
   const filterDataFetch = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
     await axios
       .post(`${backendUrl}/filter/get-filter`, {
         month: month,
@@ -528,15 +562,18 @@ const ViewReceipts = () => {
       .then((responce) => {
         // console.log(responce);
         setResData(responce.data.receipts);
+        setIsLoading(false);
       })
       .catch((error) => {
         // console.error("Error fetching data:", error);
         if (error.response && error.response.status === 404) {
           // Handle error response from the server
           toastAlert("error", error.response.data.message);
+          setIsLoading(false);
         } else {
           // Handle server or network error
           toastAlert("error", error.response.data.message);
+          setIsLoading(false);
         }
       });
   };
@@ -779,15 +816,24 @@ const ViewReceipts = () => {
       </div>
 
       <div className="w-[100] m-5 bg-white p-2 rounded-xl">
-        <DataTable
-          columns={columns}
-          data={resData}
-          customStyles={customStyles}
-          pagination
-          paginationRowsPerPageOptions={[50, 100, 200, 500, 1000, 1500]} // Custom dropdown valuess
-          paginationPerPage={50}
-        />
-        {/* {console.log("Columns : ", columns)} */}
+        {isLoading ? (
+          <Backdrop
+            sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
+            open
+          >
+            <CircularProgress color="inherit" />
+          </Backdrop>
+        ) : (
+          <DataTable
+            columns={columns}
+            data={resData}
+            customStyles={customStyles}
+            pagination
+            paginationRowsPerPageOptions={[50, 100, 200, 500, 1000, 1500]} // Custom dropdown valuess
+            paginationPerPage={50}
+          />
+          // {/* {console.log("Columns : ", columns)} */}
+        )}
       </div>
 
       {/* View modal */}

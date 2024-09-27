@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useState } from "react";
 import Header from "../Header";
 import axios from "axios";
 // import inputFields from "../../assets/sample_data/InputFields";
+import Backdrop from "@mui/material/Backdrop";
+import CircularProgress from "@mui/material/CircularProgress";
 import InputBox from "../InputBox";
 import crossIcon from "../../assets/icons/cross.svg";
 import { sweetAlert } from "../../utils/Alerts/sweetAlert";
@@ -17,16 +19,21 @@ const ChangeForm = () => {
   const [deleteButtonClicked, setDeleteButtonClicked] = useState(false);
   const [addButtonClicked, setAddButtonClicked] = useState(false);
 
+  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
     const fetchFields = async () => {
       try {
+        setIsLoading(true);
         const response = await axios.get(`${backendUrl}/receipt/get-fields`);
         // console.log(response);
         if (response.data.success) {
           setInputFields(response.data.fields);
+          setIsLoading(false);
         }
       } catch (error) {
-        console.error("Error fetching fields", error);
+        // console.error("Error fetching fields", error);
+        setIsLoading(false);
       }
     };
 
@@ -38,6 +45,7 @@ const ChangeForm = () => {
     sweetAlert(`Are you sure you want to delete the "${name}" field?`).then(
       (result) => {
         if (result.isConfirmed) {
+          setIsLoading(true);
           axios
             .post(`${backendUrl}/receipt/delete-field`, {
               fieldName: name,
@@ -47,6 +55,7 @@ const ChangeForm = () => {
                 setDeleteButtonClicked((prev) => !prev); // Toggle to trigger re-fetch
                 // console.log(response.data.message);
                 toastAlert("success", `"${name}" field is Deleted !`);
+                setIsLoading(false);
               }
             })
             .catch((error) => {
@@ -54,9 +63,11 @@ const ChangeForm = () => {
               if (error.response) {
                 // Handle invalid credentials
                 toastAlert("error", error.response.data.message);
+                setIsLoading(false);
               } else {
                 // Handle server or network error
                 toastAlert("error", "Server Error!");
+                setIsLoading(false);
               }
             });
         } else if (result.isDenied) {
@@ -71,7 +82,8 @@ const ChangeForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    axios
+    setIsLoading(true);
+    await axios
       .post(`${backendUrl}/receipt/add-field`, {
         fieldName: fieldName,
         fieldType: fieldType,
@@ -83,6 +95,7 @@ const ChangeForm = () => {
           document.querySelector("form").reset(); // Reset the form fields
           // console.log(response.data.message);
           toastAlert("success", `"${fieldName}" field Added !`);
+          setIsLoading(false);
         }
       })
       .catch((error) => {
@@ -90,9 +103,11 @@ const ChangeForm = () => {
         if (error.response) {
           // Handle invalid credentials
           toastAlert("error", error.response.data.message);
+          setIsLoading(false);
         } else {
           // Handle server or network error
           toastAlert("error", "Server Error!");
+          setIsLoading(false);
         }
       });
   };
@@ -101,24 +116,34 @@ const ChangeForm = () => {
     <section>
       <Header page="Change Form" isDashboard={false} />
       <div className="w-[100] mt-12 sm:mt-5 m-5 bg-white p-10 flex flex-col xl:flex-row items-center sm:items-start gap-8 xl:gap-40 rounded-xl">
-        <div className="flex flex-col gap-4">
-          {inputFields.map((field, index) => (
-            <div
-              key={index}
-              className="flex gap-3 items-center w-[18rem] sm:w-[30rem] border-2 border-black rounded-md p-2"
-            >
-              <img
-                src={crossIcon}
-                alt=""
-                className="w-7 cursor-pointer"
-                onClick={() => {
-                  handleDeleteButton(field.fieldName);
-                }}
-              />
-              <h3 className="text-lg font-semibold">{field.fieldName}</h3>
-            </div>
-          ))}
-        </div>
+        {isLoading ? (
+          <Backdrop
+            sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
+            open
+          >
+            <CircularProgress color="inherit" />
+          </Backdrop>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {inputFields.map((field, index) => (
+              <div
+                key={index}
+                className="flex gap-3 items-center w-[18rem] sm:w-[30rem] border-2 border-black rounded-md p-2"
+              >
+                <img
+                  src={crossIcon}
+                  alt=""
+                  className="w-7 cursor-pointer"
+                  onClick={() => {
+                    handleDeleteButton(field.fieldName);
+                  }}
+                />
+                <h3 className="text-lg font-semibold">{field.fieldName}</h3>
+              </div>
+            ))}
+          </div>
+        )}
+
         <div className="bg-white w-[20rem] sm:w-[35rem] xl:w-[40rem] p-10 flex flex-col items-center rounded-xl drop-shadow-[0_15px_35px_rgba(0,0,0,0.25)]">
           <h3 className="text-lg font-medium mb-8">ADD NEW FIELD</h3>
           <form

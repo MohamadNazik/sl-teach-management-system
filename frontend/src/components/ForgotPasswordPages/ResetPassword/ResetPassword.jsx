@@ -6,6 +6,9 @@ import axios from "axios";
 import { ForgotPasswordContext } from "../../../utils/context/ForgotPasswordContext";
 import { toastAlert } from "../../../utils/Alerts/toastAlert";
 
+import Backdrop from "@mui/material/Backdrop";
+import CircularProgress from "@mui/material/CircularProgress";
+
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const ResetPassword = () => {
@@ -17,6 +20,8 @@ const ResetPassword = () => {
 
   const [isHide, setIsHide] = useState(true);
   const [isNewHide, setINewsHide] = useState(true);
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -43,6 +48,7 @@ const ResetPassword = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
     await axios
       .post(`${backendUrl}/admin/reset-password`, {
         staffId: user.staffId,
@@ -53,6 +59,7 @@ const ResetPassword = () => {
         // console.log(response);
         if (response.data.success) {
           navigate("/", { replace: true });
+          setIsAuth(false);
           toastAlert("success", "Password Changed !");
         }
       })
@@ -60,9 +67,11 @@ const ResetPassword = () => {
         if (error.response) {
           // Handle invalid credentials
           toastAlert("error", error.response.data.message);
+          setIsLoading(false);
         } else {
           // Handle server or network error
           toastAlert("error", "Server Error!");
+          setIsLoading(false);
         }
       });
   };
@@ -129,6 +138,14 @@ const ResetPassword = () => {
           </button>
         </form>
       </div>
+      {isLoading && (
+        <Backdrop
+          sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
+          open
+        >
+          <CircularProgress color="inherit" />
+        </Backdrop>
+      )}
     </section>
   );
 };
