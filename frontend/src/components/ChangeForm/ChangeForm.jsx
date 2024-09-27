@@ -140,7 +140,6 @@ const ChangeForm = () => {
                 { label: "Text", value: "text" },
                 { label: "Date", value: "date" },
                 { label: "Time", value: "time" },
-                { label: "File", value: "file" },
               ]}
             />
             <InputBox
