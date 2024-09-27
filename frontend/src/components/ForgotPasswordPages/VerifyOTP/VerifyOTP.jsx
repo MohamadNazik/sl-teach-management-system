@@ -4,12 +4,17 @@ import { ForgotPasswordContext } from "../../../utils/context/ForgotPasswordCont
 import axios from "axios";
 import { toastAlert } from "../../../utils/Alerts/toastAlert";
 
+import Backdrop from "@mui/material/Backdrop";
+import CircularProgress from "@mui/material/CircularProgress";
+
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const VerifyOTP = () => {
   const [otp, setOtp] = useState();
   const { user } = useContext(ForgotPasswordContext);
   const [isAuth, setIsAuth] = useState(false);
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -36,14 +41,17 @@ const VerifyOTP = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
     await axios
       .post(`${backendUrl}/admin/verifyOTP`, {
         staffId: user.staffId,
         otp: otp,
       })
       .then((response) => {
+        setIsLoading(false);
         if (response.data.success) {
           //console.log(response.data);
+
           navigate("/forgot-password/reset-password");
           toastAlert("success", "OTP verified");
         }
@@ -52,9 +60,11 @@ const VerifyOTP = () => {
         if (error.response) {
           // Handle invalid credentials
           toastAlert("error", error.response.data.message);
+          setIsLoading(false);
         } else {
           // Handle server or network error
           toastAlert("error", "Server Error!");
+          setIsLoading(false);
         }
       });
   };
@@ -94,6 +104,14 @@ const VerifyOTP = () => {
           </button>
         </form>
       </div>
+      {isLoading && (
+        <Backdrop
+          sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
+          open
+        >
+          <CircularProgress color="inherit" />
+        </Backdrop>
+      )}
     </section>
   ) : (
     <div>Page Not Found!</div>

@@ -9,6 +9,9 @@ import { toastAlert } from "../../utils/Alerts/toastAlert";
 import { sweetAlert } from "../../utils/Alerts/sweetAlert";
 // import users from "../../assets/sample_data/users";
 
+import Backdrop from "@mui/material/Backdrop";
+import CircularProgress from "@mui/material/CircularProgress";
+
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const customStyles = {
@@ -49,14 +52,18 @@ const ManageStaff = () => {
   const [isPassHide, setIsPassHide] = useState(true);
   const [isConfirmHide, setIsConfirmHide] = useState(true);
 
+  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
-      axios
+      setIsLoading(true);
+      await axios
         .get(`${backendUrl}/admin/get-all-staff`)
         .then((response) => {
           // console.log(response);
           if (response.data.success) {
             setResData(response.data.users);
+            setIsLoading(false);
           }
         })
         .catch((error) => {
@@ -81,6 +88,7 @@ const ManageStaff = () => {
     sweetAlert(`Are you sure you want to\nDelete the "${user.name}"?`).then(
       (result) => {
         if (result.isConfirmed) {
+          setIsLoading(true);
           axios
             .delete(`${backendUrl}/admin/delete-staff/${id}`)
             .then((response) => {
@@ -88,6 +96,7 @@ const ManageStaff = () => {
               if (response.data.success) {
                 setDeleteButtonClicked((prev) => !prev);
                 toastAlert("success", `"${user.name}" is deleted !`);
+                setIsLoading(false);
                 // console.log(response.data.message);
               }
             })
@@ -109,7 +118,8 @@ const ManageStaff = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    axios
+    setIsLoading(true);
+    await axios
       .post(`${backendUrl}/admin/create-staff`, {
         name: name,
         email: email,
@@ -123,6 +133,7 @@ const ManageStaff = () => {
           toastAlert("success", `"${response.data.staff.name}" is added !`);
           setAddButtonClicked((prev) => !prev);
           document.querySelector("form").reset(); // Reset the form fields
+          setIsLoading(false);
         }
       })
       .catch((error) => {
@@ -130,9 +141,11 @@ const ManageStaff = () => {
         if (error.response) {
           // Handle invalid credentials
           toastAlert("error", error.response.data.message);
+          setIsLoading(false);
         } else {
           // Handle server or network error
           toastAlert("error", "Server Error!");
+          setIsLoading(false);
         }
       });
   };
@@ -176,14 +189,26 @@ const ManageStaff = () => {
       <Header page="Manage Staff" isDashboard={false} />
       <div className="w-[100] m-5 bg-white p-10 flex flex-col xl:flex-row items-start gap-8 xl:gap-40 rounded-xl">
         <div className="w-[20rem] sm:w-[30rem] lg:w-[45rem] flex flex-col gap-4 rounded-xl">
-          <DataTable
-            columns={columns}
-            data={resData} // Using the imported dataset
-            pagination
-            customStyles={customStyles}
-            paginationRowsPerPageOptions={[5, 10, 15, 20, 25]} // Custom dropdown valuess
-            paginationPerPage={10}
-          />
+          {isLoading ? (
+            <Backdrop
+              sx={(theme) => ({
+                color: "#fff",
+                zIndex: theme.zIndex.drawer + 1,
+              })}
+              open
+            >
+              <CircularProgress color="inherit" />
+            </Backdrop>
+          ) : (
+            <DataTable
+              columns={columns}
+              data={resData} // Using the imported dataset
+              pagination
+              customStyles={customStyles}
+              paginationRowsPerPageOptions={[5, 10, 15, 20, 25]} // Custom dropdown valuess
+              paginationPerPage={10}
+            />
+          )}
         </div>
         <div className="bg-white w-[25rem] lg:w-[40rem] p-10 flex flex-col items-center rounded-xl drop-shadow-xl">
           <h3 className="text-lg font-medium mb-8">ADD NEW STAFF</h3>
