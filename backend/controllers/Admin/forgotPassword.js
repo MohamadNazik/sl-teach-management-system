@@ -1,4 +1,6 @@
 import JWT from "jsonwebtoken";
+import dotenv from "dotenv";
+dotenv.config();
 import admins from "../../models/admins.js";
 import bcrypt from "bcrypt";
 import UserOTPVerification from "../../models/UserOTPVerification.js";
@@ -24,14 +26,16 @@ export const forgotPAsswordController = async (req, res) => {
     });
   }
 };
+const otpEmail = process.env.OTP_EMAIL;
+const otpPassword = process.env.OTP_PASSWORD;
 
 let transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
   secure: false,
   auth: {
-    user: "2020ict35@vau.jfn.ac.lk",
-    pass: "oqgd uapw nsxp pghb",
+    user: otpEmail,
+    pass: otpPassword,
   },
 });
 
