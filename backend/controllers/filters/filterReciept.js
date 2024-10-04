@@ -84,7 +84,7 @@ export const getFilters = async (req, res) => {
     const query = { $and: filters };
 
     const receipts = await inputDetails.find(query);
-    console.log(receipts);
+    // console.log(receipts);
 
     if (receipts.length === 0) {
       return res.status(404).send({

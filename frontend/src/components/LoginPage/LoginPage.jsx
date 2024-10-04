@@ -4,6 +4,7 @@ import { FaEyeSlash } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AuthContext } from "../../utils/context/AuthContext";
+import logo from "../../assets/logos/SL Teach Logo.jpg";
 
 import "react-toastify/dist/ReactToastify.css";
 import { toastAlert } from "../../utils/Alerts/toastAlert";
@@ -85,11 +86,12 @@ const LoginPage = () => {
   return (
     <section className="h-screen flex items-center justify-center bg-[url('/src/assets/background/login.png')] bg-cover">
       <div className="w-96 flex flex-col items-center">
-        <div className="mb-10">
-          <h1 className="text-center font-bold text-3xl mb-3 text-white tracking-[0.15em]">
+        <div className="mb-8 flex flex-col items-center">
+          <img src={logo} alt="Logo" className="w-36 rounded-3xl" />
+          {/* <h1 className="text-center font-bold text-3xl mb-3 text-white tracking-[0.15em]">
             SL TEACH
-          </h1>
-          <h3 className="text-center font-medium text-lg text-white tracking-wide">
+          </h1> */}
+          <h3 className="text-center font-medium text-xl text-white tracking-wide mt-5">
             Receipt Management System
           </h3>
         </div>
