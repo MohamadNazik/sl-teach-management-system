@@ -76,9 +76,9 @@ const ResetPassword = () => {
       });
   };
   return (
-    <section className="h-screen flex items-center justify-center">
-      <div className="w-[45rem] flex flex-col items-center m-5 bg-white p-2 rounded-xl pt-8 drop-shadow-2xl">
-        <h1 className="text-3xl sm:text-4xl font-bold text-[#BF3606]">
+    <section className="flex items-center justify-center mt-16">
+      <div className="w-[25rem] sm:w-[45rem] flex flex-col items-center m-5 bg-white p-2 rounded-xl pt-8 drop-shadow-2xl">
+        <h1 className="text-xl sm:text-3xl font-bold text-[#BF3606]">
           Reset Your Password
         </h1>
         <form
