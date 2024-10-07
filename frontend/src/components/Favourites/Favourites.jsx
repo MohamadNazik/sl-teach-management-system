@@ -33,6 +33,7 @@ const customStyles = {
   cells: {
     style: {
       fontSize: "0.75rem",
+      width: "100px",
     },
   },
   header: {

@@ -1,12 +1,18 @@
 import cloudinary from "cloudinary";
 import Favourite from "../../models/favourite.js";
 import inputDetails from "../../models/inputDetails.js";
+import dotenv from "dotenv";
+dotenv.config();
+
+const cloud_name = process.env.CLOUD_NAME;
+const api_key = process.env.API_KEY;
+const api_secret = process.env.API_SECRET;
 
 // Cloudinary configuration
 cloudinary.v2.config({
-  cloud_name: "df8ofqkkk",
-  api_key: "242667797751225",
-  api_secret: "x5oLvVoAFOzuwsRcBC-ma6awlQ0",
+  cloud_name: cloud_name,
+  api_key: api_key,
+  api_secret: api_secret,
 });
 
 export const deleteRecieptController = async (req, res) => {
@@ -23,7 +29,7 @@ export const deleteRecieptController = async (req, res) => {
     }
 
     // Optional: Check if there is a file URL and public_id to delete
-    const filePath = result.fields.get("photo");
+    const filePath = result.fields.get("Upload Image");
     // console.log(filePath);
 
     if (filePath) {

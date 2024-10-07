@@ -17,7 +17,7 @@ ConnectDB();
 // Middleware setup
 app.use(
   cors({
-    origin: process.env.FRONTEND_URI || "http://localhost:3000",
+    origin: process.env.FRONTEND_URI || "http://localhost:5173",
   })
 );
 app.use(express.json());

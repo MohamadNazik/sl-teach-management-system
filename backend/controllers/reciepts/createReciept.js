@@ -2,12 +2,18 @@ import cloudinary from "cloudinary";
 import inputDetails from "../../models/inputDetails.js";
 import fs from "fs";
 import path from "path";
+import dotenv from "dotenv";
+dotenv.config();
+
+const cloud_name = process.env.CLOUD_NAME;
+const api_key = process.env.API_KEY;
+const api_secret = process.env.API_SECRET;
 
 // Cloudinary configuration
 cloudinary.v2.config({
-  cloud_name: "df8ofqkkk",
-  api_key: "242667797751225",
-  api_secret: "x5oLvVoAFOzuwsRcBC-ma6awlQ0",
+  cloud_name: cloud_name,
+  api_key: api_key,
+  api_secret: api_secret,
 });
 
 export const createRecieptController = async (req, res) => {

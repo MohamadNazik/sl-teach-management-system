@@ -47,6 +47,8 @@ const AddReceipt = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    setIsLoading(true);
+
     await axios
       .post(`${backendUrl}/receipt/create-receipt`, formData, {
         headers: {
@@ -56,6 +58,7 @@ const AddReceipt = () => {
       .then((response) => {
         // console.log("Response:", response.data);
         toastAlert("success", "Receipt Added !");
+        setIsLoading(false);
         setFormData(new FormData()); // Reset FormData
         document.querySelector("form").reset(); // Reset the form fields
       })
@@ -64,9 +67,11 @@ const AddReceipt = () => {
         if (error.response) {
           // Handle invalid credentials
           toastAlert("error", error.response.data.message);
+          setIsLoading(false);
         } else {
           // Handle server or network error
           toastAlert("error", "Server Error!");
+          setIsLoading(false);
         }
       });
   };
@@ -85,54 +90,54 @@ const AddReceipt = () => {
     <section className="flex flex-col items-center">
       <Header page="Add Receipt" isDashboard={false} role={0} />
 
-      {isLoading ? (
+      <div className="w-full sm:w-[100] m-5 mt-12 sm:mt-4 bg-white p-10 rounded-xl flex items-center justify-center">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col items-center md:items-start gap-5"
+        >
+          {inputFields.map((field, index) =>
+            field.fieldType === "file" ? (
+              <UploadFIleInput
+                key={index}
+                label={field.fieldName}
+                requiredField={field.required}
+                onChange={handleChange}
+              />
+            ) : (
+              <InputBox
+                key={index}
+                type={field.fieldType}
+                label={field.fieldName}
+                requiredField={field.required}
+                onChange={handleChange}
+              />
+            )
+          )}
+          <div className="flex gap-5">
+            <button
+              type="submit"
+              className="text-md rounded-md w-32 sm:w-52 pl-6 pr-6 pt-2 pb-2 bg-[#BF3606] mt-8 font-semibold text-white"
+            >
+              Add Receipt
+            </button>
+            <button
+              type="button"
+              className="text-md rounded-md w-32 sm:w-52 pl-6 pr-6 pt-2 pb-2 bg-[#BF3606] mt-8 font-semibold text-white"
+              onClick={() => document.querySelector("form").reset()}
+            >
+              Clear
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {isLoading && (
         <Backdrop
           sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
           open
         >
           <CircularProgress color="inherit" />
         </Backdrop>
-      ) : (
-        <div className="w-full sm:w-[100] m-5 mt-12 sm:mt-4 bg-white p-10 rounded-xl flex items-center justify-center">
-          <form
-            onSubmit={handleSubmit}
-            className="flex flex-col items-center md:items-start gap-5"
-          >
-            {inputFields.map((field, index) =>
-              field.fieldType === "file" ? (
-                <UploadFIleInput
-                  key={index}
-                  label={field.fieldName}
-                  requiredField={field.required}
-                  onChange={handleChange}
-                />
-              ) : (
-                <InputBox
-                  key={index}
-                  type={field.fieldType}
-                  label={field.fieldName}
-                  requiredField={field.required}
-                  onChange={handleChange}
-                />
-              )
-            )}
-            <div className="flex gap-5">
-              <button
-                type="submit"
-                className="text-md rounded-md w-32 sm:w-52 pl-6 pr-6 pt-2 pb-2 bg-[#BF3606] mt-8 font-semibold text-white"
-              >
-                Add Receipt
-              </button>
-              <button
-                type="button"
-                className="text-md rounded-md w-32 sm:w-52 pl-6 pr-6 pt-2 pb-2 bg-[#BF3606] mt-8 font-semibold text-white"
-                onClick={() => document.querySelector("form").reset()}
-              >
-                Clear
-              </button>
-            </div>
-          </form>
-        </div>
       )}
     </section>
   );
