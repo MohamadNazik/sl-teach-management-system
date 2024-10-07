@@ -93,7 +93,7 @@ const AddReceipt = () => {
           <CircularProgress color="inherit" />
         </Backdrop>
       ) : (
-        <div className="w-full sm:w-[100] m-5 mt-12 sm:mt-4 bg-white p-10 rounded-xl">
+        <div className="w-full sm:w-[100] m-5 mt-12 sm:mt-4 bg-white p-10 rounded-xl flex items-center justify-center">
           <form
             onSubmit={handleSubmit}
             className="flex flex-col items-center md:items-start gap-5"

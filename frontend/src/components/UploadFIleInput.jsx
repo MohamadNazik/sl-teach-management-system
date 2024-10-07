@@ -22,6 +22,10 @@ const UploadFIleInput = ({ label, onChange, requiredField }) => {
           />
         </div>
       </label>
+      <p className="text-sm mt-1">
+        <span className="text-sm">Accepted file formats:-</span>{" "}
+        <i className="font-medium text-gray-500">jpg, jpeg, png</i>
+      </p>
     </div>
   );
 };
