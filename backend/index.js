@@ -5,25 +5,34 @@ import dotenv from "dotenv";
 import cors from "cors";
 import adminRoute from "./routes/adminRoute.js";
 import authRoute from "./routes/authRoute.js";
-import recieptRoute from "./routes/recieptRoute.js";
+import receiptRoute from "./routes/recieptRoute.js";
 import filterRoute from "./routes/filterRoute.js";
-// import formidable from "express-formidable";
 
+// Load environment variables
 dotenv.config();
+
 const app = express();
 ConnectDB();
 
-app.use(cors());
+// Middleware setup
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URI || "http://localhost:3000",
+  })
+);
 app.use(express.json());
 app.use(morgan("dev"));
-// app.use(formidable({ multiples: true }));
-const PORT = process.env.PORT || 8000;
 
+// Routes
 app.use("/api/admin", adminRoute);
 app.use("/api/auth", authRoute);
-app.use("/api/receipt", recieptRoute);
+app.use("/api/receipt", receiptRoute);
 app.use("/api/filter", filterRoute);
 
+// Port configuration
+const PORT = process.env.PORT || 8000;
+
+// Start the server
 app.listen(PORT, () => {
-  console.log(`Server is running on port  http://localhost:${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });

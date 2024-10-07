@@ -1,23 +1,19 @@
+import cloudinary from "cloudinary";
 import inputDetails from "../../models/inputDetails.js";
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Cloudinary configuration
+cloudinary.v2.config({
+  cloud_name: "df8ofqkkk",
+  api_key: "242667797751225",
+  api_secret: "x5oLvVoAFOzuwsRcBC-ma6awlQ0",
+});
 
 export const createRecieptController = async (req, res) => {
   try {
     const fields = req.fields;
     const files = req.files;
-
-    const userDir = path.join(__dirname, "..", "uploads");
-    // console.log("User Directory:", userDir);
-
-    if (!fs.existsSync(userDir)) {
-      console.log(`Creating directory for user: ${userDir}`);
-      fs.mkdirSync(userDir, { recursive: true });
-    }
 
     if (files && Object.keys(files).length > 0) {
       for (let key in files) {
@@ -30,16 +26,21 @@ export const createRecieptController = async (req, res) => {
           return res.status(400).json({ message: "Invalid file upload" });
         }
 
-        // console.log(`Processing file: ${file.name}, path: ${file.path}`);
+        const fileExtension = path.extname(file.name).toLowerCase();
+        let resourceType = "auto";
 
-        const tempPath = file.path;
-        const newFilePath = path.join(userDir, file.name);
-        // console.log("New File Path:", newFilePath);
+        // Handle other file types or skip
+        const result = await cloudinary.v2.uploader.upload(file.path, {
+          resource_type: resourceType,
+          folder: "receipts", // Optional: specify a folder in Cloudinary
+          overwrite: true, // Overwrite if a file with the same public_id exists
+        });
 
-        fs.renameSync(tempPath, newFilePath);
-
-        fields[key] = newFilePath;
+        // Store the Cloudinary URL in fields
+        fields[key] = result.secure_url;
       }
+
+      // Optionally delete the temp file after upload
     }
 
     if (fields.price) {
@@ -47,7 +48,7 @@ export const createRecieptController = async (req, res) => {
       if (isNaN(price)) {
         return res.status(400).json({ message: "Invalid price format" });
       }
-      fields.price = price; // Store the price as a float
+      fields.price = price;
     }
 
     const newInputDetail = new inputDetails({
