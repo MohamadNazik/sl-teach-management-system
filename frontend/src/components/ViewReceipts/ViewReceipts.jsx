@@ -90,6 +90,7 @@ const ViewReceipts = () => {
   const [causale, setCausale] = useState("");
   const [color, setColor] = useState("");
   const [isColorChanged, setIsColorChanged] = useState(false);
+  const [inputFields, setInputFields] = useState([]);
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -270,6 +271,26 @@ const ViewReceipts = () => {
     favoriteReceipts,
     isColorChanged,
   ]);
+
+  useEffect(() => {
+    const fetchFields = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axios.get(`${backendUrl}/receipt/get-fields`);
+        // console.log(response);
+        if (response.data.success) {
+          setInputFields(response.data.fields);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        // console.error("Error fetching fields", error);
+        setIsLoading(false);
+      }
+    };
+
+    // setDeleteButtonClicked(false);
+    fetchFields();
+  }, []);
 
   const handleRowColorChange = async (e, row) => {
     // console.log(row);
@@ -890,8 +911,6 @@ const ViewReceipts = () => {
         </div>
       </Modal>
 
-      {/* Edit modal */}
-
       <Modal
         isOpen={editModalIsOpen}
         onRequestClose={closeEditModal}
@@ -907,46 +926,74 @@ const ViewReceipts = () => {
             onSubmit={handleSubmit}
             className="flex flex-col gap-2 w-[20rem] sm:w-[38rem]"
           >
-            {currentReceipt &&
-              currentReceipt.fields &&
-              Object.entries(currentReceipt.fields).map(
-                ([key, value], index) => {
+            {inputFields && currentReceipt && (
+              <>
+                {inputFields.map((field, index) => {
+                  const fieldName = field.fieldName; // Use fieldName for labeling
+                  const fieldValue =
+                    currentReceipt.fields &&
+                    currentReceipt.fields[fieldName] !== undefined
+                      ? currentReceipt.fields[fieldName]
+                      : ""; // Check if currentReceipt.fields exists
+
                   const isPath =
-                    typeof value === "string" &&
-                    (value.startsWith("http://") ||
-                      value.startsWith("https://"));
-                  const isFilePath = isFile(value); // Check if it's a file path
+                    typeof fieldValue === "string" &&
+                    (fieldValue.startsWith("http://") ||
+                      fieldValue.startsWith("https://"));
+                  const isFilePath = isFile(fieldValue);
+                  const isColor = field.fieldType === "color"; // Check fieldType for color input
 
                   return (
                     <div key={index} className="mb-4">
-                      {!(isPath || isFilePath) && key !== "color" ? ( // Render input only if it's not a path or file
+                      {!isPath && !isFilePath && !isColor ? (
                         <>
                           <label
-                            htmlFor={key}
+                            htmlFor={fieldName}
                             className="block text-sm font-medium text-gray-700"
                           >
-                            {key === "price"
-                              ? "Euro(price)"
-                              : key.charAt(0).toUpperCase() + key.slice(1)}
+                            {fieldName === "price"
+                              ? "Euro (price)"
+                              : fieldName.charAt(0).toUpperCase() +
+                                fieldName.slice(1)}
                           </label>
                           <input
-                            id={key}
-                            name={key}
-                            type="text"
-                            value={value || ""}
-                            onChange={handleChange}
+                            id={fieldName}
+                            name={fieldName}
+                            type={field.fieldType || "text"} // Use the fieldType from the data
+                            value={fieldValue}
+                            onChange={(e) => handleChange(e, fieldName)}
                             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                          />
+                        </>
+                      ) : isColor ? (
+                        <>
+                          <label
+                            htmlFor={fieldName}
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            {fieldName.charAt(0).toUpperCase() +
+                              fieldName.slice(1)}
+                          </label>
+                          <input
+                            id={fieldName}
+                            name={fieldName}
+                            type="color"
+                            value={fieldValue || "#ffffff"} // Default to white if no value
+                            onChange={(e) => handleChange(e, fieldName)}
+                            className="mt-1 block w-full h-10"
                           />
                         </>
                       ) : null}
                     </div>
                   );
-                }
-              )}
+                })}
+              </>
+            )}
+
             <div>
               <button
                 type="submit"
-                className="w-20  text-md font-medium bg-green-700 px-3 py-2 text-white rounded-md hover:bg-green-900"
+                className="w-20 text-md font-medium bg-green-700 px-3 py-2 text-white rounded-md hover:bg-green-900"
               >
                 Save
               </button>
