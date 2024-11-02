@@ -1,18 +1,15 @@
-import cloudinary from "cloudinary";
+import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import Favourite from "../../models/favourite.js";
 import inputDetails from "../../models/inputDetails.js";
 import dotenv from "dotenv";
 dotenv.config();
 
-const cloud_name = process.env.CLOUD_NAME;
-const api_key = process.env.API_KEY;
-const api_secret = process.env.API_SECRET;
-
-// Cloudinary configuration
-cloudinary.v2.config({
-  cloud_name: cloud_name,
-  api_key: api_key,
-  api_secret: api_secret,
+const s3 = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
 });
 
 export const deleteRecieptController = async (req, res) => {
@@ -28,21 +25,36 @@ export const deleteRecieptController = async (req, res) => {
       });
     }
 
-    // Optional: Check if there is a file URL and public_id to delete
     const filePath = result.fields.get("Upload Image");
-    // console.log(filePath);
 
-    if (filePath) {
-      // Extract the public_id from the file URL to delete the file from Cloudinary
-      const publicId = extractPublicId(filePath);
+    if (filePath && filePath.includes("amazonaws.com")) {
+      const regex = new RegExp(`.*?\\.com/(.+)`);
+      const match = filePath.match(regex);
 
-      // Delete the file from Cloudinary using the public_id
-      if (publicId) {
-        await cloudinary.v2.uploader.destroy(publicId);
+      if (match && match[1]) {
+        const fileKey = match[1];
+
+        const decodedFileKey = decodeURIComponent(fileKey);
+
+        // Delete the file from S3
+        const response = await s3.send(
+          new DeleteObjectCommand({
+            Bucket: process.env.AWS_BUCKET_NAME,
+            Key: decodedFileKey,
+          })
+        );
+      } else {
+        console.error(
+          "File key extraction failed. The file path may not be formatted correctly."
+        );
+        return res.status(400).send({
+          success: false,
+          message: "File key extraction failed.",
+        });
       }
     }
+    console.log(id);
 
-    // Delete related data in 'Favourite' and 'inputDetails' collections
     await Favourite.deleteOne({ recieptId: id });
     await inputDetails.findByIdAndDelete(id);
 
@@ -58,19 +70,4 @@ export const deleteRecieptController = async (req, res) => {
       message: "Error deleting receipt",
     });
   }
-};
-
-// Function to extract public_id from Cloudinary file URL
-const extractPublicId = (fileUrl) => {
-  // Cloudinary URLs generally look like this:
-  // https://res.cloudinary.com/<cloud_name>/image/upload/v1234567890/<folder_name>/<public_id>
-  const parts = fileUrl.split("/");
-  const fileNameWithVersion = parts[parts.length - 1]; // e.g., v1234567890/file_name.jpg
-  const publicId = fileNameWithVersion.split(".")[0]; // Extract public_id (e.g., 'file_name')
-
-  // Join folder paths and return full public_id
-  return parts
-    .slice(parts.length - 2)
-    .join("/")
-    .split(".")[0];
 };
