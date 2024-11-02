@@ -16,6 +16,7 @@ export const getFilters = async (req, res) => {
       ordinate,
       causale,
       color,
+      fullName,
     } = req.body;
 
     let filters = [];
@@ -54,22 +55,22 @@ export const getFilters = async (req, res) => {
     }
     if (banca) {
       filters.push({
-        "fields.Banca": banca,
+        "fields.Banca": { $regex: banca, $options: "i" },
       });
     }
     if (benef) {
       filters.push({
-        "fields.Benef": benef,
+        "fields.Benef": { $regex: benef, $options: "i" },
       });
     }
     if (ordinate) {
       filters.push({
-        "fields.Ordinate": ordinate,
+        "fields.Ordinate": { $regex: ordinate, $options: "i" },
       });
     }
     if (causale) {
       filters.push({
-        "fields.Causale": causale,
+        "fields.Causale": { $regex: causale, $options: "i" },
       });
     }
     if (minPrice && maxPrice) {
@@ -81,10 +82,15 @@ export const getFilters = async (req, res) => {
       });
     }
 
+    if (fullName) {
+      filters.push({
+        "fields.fullName": { $regex: fullName, $options: "i" },
+      });
+    }
+
     const query = { $and: filters };
 
     const receipts = await inputDetails.find(query);
-    // console.log(receipts);
 
     if (receipts.length === 0) {
       return res.status(404).send({

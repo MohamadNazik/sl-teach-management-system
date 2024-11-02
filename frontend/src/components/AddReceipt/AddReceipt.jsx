@@ -56,7 +56,7 @@ const AddReceipt = () => {
         },
       })
       .then((response) => {
-        // console.log("Response:", response.data);
+        console.log("Response:", response.data);
         toastAlert("success", "Receipt Added !");
         setIsLoading(false);
         setFormData(new FormData()); // Reset FormData
