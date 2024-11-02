@@ -1,19 +1,18 @@
-import cloudinary from "cloudinary";
-import inputDetails from "../../models/inputDetails.js";
-import fs from "fs";
-import path from "path";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import dotenv from "dotenv";
+import fs from "fs";
+import inputDetails from "../../models/inputDetails.js";
+import path from "path";
+
 dotenv.config();
 
-const cloud_name = process.env.CLOUD_NAME;
-const api_key = process.env.API_KEY;
-const api_secret = process.env.API_SECRET;
-
-// Cloudinary configuration
-cloudinary.v2.config({
-  cloud_name: cloud_name,
-  api_key: api_key,
-  api_secret: api_secret,
+// AWS S3 configuration for SDK v3
+const s3 = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
 });
 
 export const createRecieptController = async (req, res) => {
@@ -33,20 +32,38 @@ export const createRecieptController = async (req, res) => {
         }
 
         const fileExtension = path.extname(file.name).toLowerCase();
-        let resourceType = "auto";
+        let contentType;
 
-        // Handle other file types or skip
-        const result = await cloudinary.v2.uploader.upload(file.path, {
-          resource_type: resourceType,
-          folder: "receipts", // Optional: specify a folder in Cloudinary
-          overwrite: true, // Overwrite if a file with the same public_id exists
-        });
+        // Set content type based on the file extension
+        if (fileExtension === ".pdf") {
+          contentType = "application/pdf";
+        } else if (fileExtension === ".jpg" || fileExtension === ".jpeg") {
+          contentType = "image/jpeg";
+        } else if (fileExtension === ".png") {
+          contentType = "image/png";
+        } else {
+          return res.status(400).json({ message: "Unsupported file type" });
+        }
 
-        // Store the Cloudinary URL in fields
-        fields[key] = result.secure_url;
+        // Upload file to S3
+        const fileData = fs.readFileSync(file.path);
+        const uploadParams = {
+          Bucket: process.env.AWS_BUCKET_NAME,
+          Key: `receipts/${file.name}`,
+          Body: fileData,
+          ContentType: contentType,
+          ACL: "public-read",
+        };
+
+        await s3.send(new PutObjectCommand(uploadParams));
+
+        fields[
+          key
+        ] = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/receipts/${file.name}`;
+
+        // Optionally delete the local temp file
+        fs.unlinkSync(file.path);
       }
-
-      // Optionally delete the temp file after upload
     }
 
     if (fields.price) {
