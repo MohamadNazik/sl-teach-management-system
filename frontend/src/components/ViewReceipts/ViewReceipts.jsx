@@ -112,12 +112,13 @@ const ViewReceipts = () => {
               name:
                 key === "price"
                   ? "Euro(price)"
-                  : key.charAt(0).toUpperCase() + key.slice(1), // Capitalize the first letter
-              selector: (row) => {
-                const value = row.fields[key];
-
-                return value;
-              },
+                  : key.charAt(0).toUpperCase() + key.slice(1),
+              selector: (row) => row.fields[key], // Return plain value for sorting
+              cell: (row) => (
+                <span title={row.fields[key]} className="overflow-hidden h-4">
+                  {row.fields[key]}
+                </span> // Display with tooltip
+              ),
               sortable: true,
               field: key,
             }));
